@@ -10,6 +10,14 @@ const sqrt = (number) => {
     return hi;
 }
 
+let gcd = (num, denom) => {
+  return denom ? gcd(denom, num % denom) : num;
+};
+
+const reducer = (numerator, denominator) => {
+  return { numerator: numerator / gcd(numerator, denominator), denominator: denominator / gcd(numerator, denominator) }
+}
+
 const pow = (number, pow) => {
   let result;
   while (pow > 0) {
@@ -56,8 +64,9 @@ const degree_2 = (expression) => {
   let result = {};
 
   if (delta < 0) {
-    let z1 = `${-b} - ${Math.sqrt(-delta)}i / ${(2 * a)}`;
-    let z2 = `${-b} + ${Math.sqrt(-delta)}i / ${(2 * a)}`;
+    const reduce = reducer(b, (2* a))
+    let z1 = `${-reduce.numerator} - ${Math.sqrt(-delta)}i${(reduce.denominator ===  1) ? '' : ' / ' + reduce.denominator }`;
+    let z2 = `${-reduce.numerator} + ${Math.sqrt(-delta)}i${(reduce.denominator === 1) ? '' : ' / ' + reduce.denominator }`;
     result.z1 = z1.toString();
     result.z2 = z2.toString();
   } else if (delta > 0) {
@@ -69,4 +78,4 @@ const degree_2 = (expression) => {
   console.log(result)
 }
 
-parser("5 * X^0 + 14 * X^1 + 11 * X^2")
+parser("111 * X^0 + 14 * X^1 + 1 * X^2")
