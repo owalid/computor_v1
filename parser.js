@@ -2,7 +2,7 @@ const operator = ["+", "*", "/", "-"];
 
 const sqrt = (number) => {
   let lo = 0, hi = number;
-  while(lo <= hi) {
+  while (lo <= hi) {
     let mid = Math.floor((lo + hi) / 2);
     if (mid * mid > number) {
       hi = mid - 1;
@@ -27,7 +27,7 @@ const reduceExpression = (expression, degree, degree_right) => {
 
   const a_right = +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
-  let result = { first_part: `${(degree_right < degree) ? a - a_right : a_right - a}X^0`, second_part: null, third_part: null };
+  let result = { first_part: `${(degree_right < degree) ? a - a_right : a_right - a}X^0`, second_part: false, third_part: false };
 
   const b_right = (degree_right >= 1) ? +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') : null;
   const b = (degree >= 1) ? +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 1 : null;
@@ -44,14 +44,17 @@ const reduceExpression = (expression, degree, degree_right) => {
   if (degree === 2 || degree_right === 2) {
     result.third_part = (degree_right > degree) ? `${c_right}X^2` : `${c}X^2`
   }
+  console.log(degree)
+
   if (degree >= 1 && b_right && b) {
     result.second_part = `${b - b_right}X^1`
   }
   if (degree === 2 && c_right && c) {
     result.third_part = `${c - c_right}X^2`
   }
-  console.log(result)
-  return (result.first_part + result.second_part || '' + result.third_part || '');
+  console.log(result.third_part)
+  console.log(result.second_part || '')
+  return `${result.first_part} ${result.second_part || ''} ${result.third_part || ''}`
 }
 
 const pow = (number, pow) => {
@@ -71,20 +74,25 @@ const parser = (expression) => {
 
   let degree_number_left;
   if (expression.includes('^')) {
-    const split_degree = expression.split('^')
-    degree_number_left = +split_degree[split_degree.length - (have_two_expr) ? 2 : 1].charAt(0);
+    const split_degree = expression.split('^');
+    const index = (have_two_expr) ? 2 : 1;
+    degree_number_left = +split_degree[split_degree.length - index].charAt(0);
     degree_number_right = (have_two_expr) ? +split_degree[split_degree.length - 1].charAt(0) : null;
   } else {
-    const split_degree = expression.split('X')
-    degree_number_left = +split_degree[split_degree.length - (have_two_expr) ? 2 : 1].charAt(0);
+    const split_degree = expression.split('X');
+    const index = (have_two_expr) ? 2 : 1;
+    degree_number_left = +split_degree[split_degree.length - index].charAt(0);
     degree_number_right = (have_two_expr) ? +split_degree[split_degree.length - 1].charAt(0) : null;
   }
   let result =  { degree_number: degree_number_left, reduced: null }
   if (have_two_expr) {
     result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
     expression = result.reduced;
+    console.log("1", expression)
+    console.log("a", result.degree_number);
+    result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
+    console.log("b", result.degree_number);
   }
-  result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
   if (result.degree_number === 2) {
     result.solutions = degree_2(expression);
   } else if (result.degree_number === 1) {
@@ -140,6 +148,6 @@ const degree_2 = (expression) => {
   return (result);
 }
 
-parser("4 * X^0 = 5 * X^0 + 4 * X^1")
-console.log("------------------------------------------------------------------------------------")
-parser("5 * X^0 + 4 * X^1 = 4 * X^0")
+parser("5 * X^0 + 4 * X^1 - 9.3 * X^2 = 1 * X^0")
+// console.log("------------------------------------------------------------------------------------")
+// parser("5 * X^0 + 4 * X^1 = 4 * X^0")
