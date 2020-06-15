@@ -21,28 +21,36 @@ const reducer = (numerator, denominator) => {
   return { numerator: numerator / gcd(numerator, denominator), denominator: denominator / gcd(numerator, denominator) }
 }
 
-const reduceExpression = (expression, degree, degree_number_right) => {
+const reduceExpression = (expression, degree, degree_right) => {
   const rigth_side = expression.split('=')[1];
   const have_pow_char = expression.includes('^');
 
-  console.log(degree)
   const a_right = +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
+  let result = { first_part: `${(degree_right < degree) ? a - a_right : a_right - a}X^0`, second_part: null, third_part: null };
 
-  const b_right = (degree_number_right >= 1) ? +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') : null;
+  const b_right = (degree_right >= 1) ? +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') : null;
   const b = (degree >= 1) ? +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 1 : null;
 
-  const c_right = (degree_number_right === 2) ? +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') : null;
+  // 11x0 = 11x0 + 2x1
+  if (degree >= 1 || degree_right >= 1) {
+    result.second_part = (degree_right > degree) ? `${b_right}X^1` : `${b}X^1`
+  }
+  
+  const c_right = (degree_right === 2) ? +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') : null;
   const c = (degree === 2) ? +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') || 1 : null;
-
-  let result = { first_part: `${a - a_right}X^0`, second_part: `${b}X^1`, third_part: `${c}X^2` };
-
-  if (degree >= 1 && b_right) {
+  
+  // 11x0 = 11x0 + 2x1 + 2x2
+  if (degree === 2 || degree_right === 2) {
+    result.third_part = (degree_right > degree) ? `${c_right}X^2` : `${c}X^2`
+  }
+  if (degree >= 1 && b_right && b) {
     result.second_part = `${b - b_right}X^1`
   }
-  if (degree === 2 && c_right) {
+  if (degree === 2 && c_right && c) {
     result.third_part = `${c - c_right}X^2`
   }
+  console.log(result)
   return (result.first_part + result.second_part || '' + result.third_part || '');
 }
 
@@ -76,6 +84,7 @@ const parser = (expression) => {
     result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
     expression = result.reduced;
   }
+  result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
   if (result.degree_number === 2) {
     result.solutions = degree_2(expression);
   } else if (result.degree_number === 1) {
@@ -101,8 +110,8 @@ const degree_1 = (expression) => {
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 0;
   const b = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
   let result = {};
-
-  if (a > 0) {
+  
+  if (a !== 0) {
     result.x = b / -a;
   }
   return (result);
@@ -113,7 +122,6 @@ const degree_2 = (expression) => {
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') || 1;
   const b = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 1;
   const c = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
-  console.log(a, b, c)
   let delta = pow(b, 2) - (4 * (a * c));
   let result = {};
 
@@ -132,4 +140,6 @@ const degree_2 = (expression) => {
   return (result);
 }
 
+parser("4 * X^0 = 5 * X^0 + 4 * X^1")
+console.log("------------------------------------------------------------------------------------")
 parser("5 * X^0 + 4 * X^1 = 4 * X^0")
