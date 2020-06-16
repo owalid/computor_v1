@@ -19,83 +19,50 @@ const reducer = (numerator, denominator) => {
   return { numerator: numerator / gcd(numerator, denominator), denominator: denominator / gcd(numerator, denominator) }
 }
 
-// const reduceExpression2 = (expression, degree, degree_right) => {
-//   const rigth_side = expression.split('=')[1];
-//   const have_pow_char = expression.includes('^');
-
-//   const a_right = +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
-//   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
-//   let result = { first_part: `${(degree_right < degree) ? a - a_right : a_right - a}X^0`, second_part: false, third_part: false };
-
-//   let expression_2 = expression.split(`${have_pow_char ? 'X^' : 'X'}`);
-//   expression_2.shift()
-//   let is_right = false;
-//   expression_l = [];
-//   expression_r = [];
-//   // parser("8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = 3 * X^0")
-//   expression_l.push(a)
-//   console.log(expression_2)
-//   expression_2.map((item, idk) => {
-//     if (((item.includes('=') && item.split('=')[1] !== 0) || is_right) && item) {
-//       is_right = true;
-//       expression_r.push(+item.split('=').join('').split('*').join('').substr(1))
-//     } else {
-//       expression_l.push(+item.split('*').join('').substr(1))
-//     }
-//   })
-//   console.log(expression_l)
-//   console.log(expression_r)
-// }
-
-const reduceExpression = (expression, degree, degree_right) => {
+const reduceExpression = (expression) => {
   const rigth_side = expression.split('=')[1];
   const have_pow_char = expression.includes('^');
 
   const a_right = +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
-  let result = { first_part: `${(degree_right < degree) ? a - a_right : a_right - a}X^0`, second_part: false, third_part: false };
-  let result_f = "";
+  let result = "";
 
   let expression_l = expression.split('=')[0].split(`${have_pow_char ? 'X^' : 'X'}`);
   let expression_r = expression.split('=')[1].split(`${have_pow_char ? 'X^' : 'X'}`);
-  expression_l.shift()
-  expression_r.shift()
-  let is_right = false;
-  expression_l_split = [];
-  expression_r_split = [];
-  // parser("8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = 3 * X^0")
-  expression_l_split.push(a);
-  expression_r_split.push(a_right);
-  // console.log(expression_l)
-  // console.log(expression_r)
-  expression_l.map((item, idk) => {
-    expression_l_split.push(+item.split('*').join('').substr(1))
+  expression_l.shift();
+  expression_r.shift();
+
+  expression_l_splited = [];
+  expression_r_splited = [];
+  expression_l_splited.push(a);
+  expression_r_splited.push(a_right);
+  expression_l.map(item => {
+    expression_l_splited.push(+item.split('*').join('').substr(1))
   })
   expression_r.map(item => {
-    expression_r_split.push(+item.split('*').join('').substr(1))
+    expression_r_splited.push(+item.split('*').join('').substr(1))
   })
-  expression_l_split.pop()
-  expression_r_split.pop()
-  if (expression_l_split.length > expression_r_split.length) {
-    expression_l_split.map((item, id) => {
-      if (expression_r_split[id]) {
-        result_f += `${expression_l_split[id] - expression_r_split[id]} X^${id} `
+  expression_l_splited.pop()
+  expression_r_splited.pop()
+  if (expression_l_splited.length > expression_r_splited.length) {
+    expression_l_splited.map((item, id) => {
+      if (expression_r_splited[id]) {
+        result += `${expression_l_splited[id] - expression_r_splited[id]} X^${id}`
       } else {
-        result_f += `${expression_l_split[id]} X^${id} `
+        result += `${expression_l_splited[id]} X^${id}`
       }
     })
   } else {
-    expression_r_split.map((item, id) => {
-      if (expression_l_split[id]) {
-        result_f += `${expression_r_split[id] - expression_l_split[id]} X^${id} `
+    expression_r_splited.map((item, id) => {
+      if (expression_l_splited[id]) {
+        result += `${expression_r_splited[id] - expression_l_splited[id]} X^${id}`
       } else {
-        result_f += `${expression_r_split[id]} X^${id} `
+        result += `${expression_r_splited[id]} X^${id}`
       }
     })
   }
-  result_f += "= 0"
-  console.log(result_f)
-  return result_f;
+  result += "= 0"
+  return result;
 }
 
 const parser = (expression) => {
