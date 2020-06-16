@@ -1,16 +1,14 @@
 const operator = ["+", "*", "/", "-"];
 
 const sqrt = (number) => {
-  let lo = 0, hi = number;
-  while (lo <= hi) {
-    let mid = Math.floor((lo + hi) / 2);
-    if (mid * mid > number) {
-      hi = mid - 1;
-    } else {
-      lo = mid + 1;
-    } 
+  let result;
+  let x1 = number / 2;
+      
+  while (result !== x1) {
+      result = x1;
+      x1 = (result + (number / result)) / 2;
   }
-  return hi;
+  return result;
 }
 
 let gcd = (num, denom) => {
@@ -21,6 +19,34 @@ const reducer = (numerator, denominator) => {
   return { numerator: numerator / gcd(numerator, denominator), denominator: denominator / gcd(numerator, denominator) }
 }
 
+// const reduceExpression2 = (expression, degree, degree_right) => {
+//   const rigth_side = expression.split('=')[1];
+//   const have_pow_char = expression.includes('^');
+
+//   const a_right = +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
+//   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
+//   let result = { first_part: `${(degree_right < degree) ? a - a_right : a_right - a}X^0`, second_part: false, third_part: false };
+
+//   let expression_2 = expression.split(`${have_pow_char ? 'X^' : 'X'}`);
+//   expression_2.shift()
+//   let is_right = false;
+//   expression_l = [];
+//   expression_r = [];
+//   // parser("8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = 3 * X^0")
+//   expression_l.push(a)
+//   console.log(expression_2)
+//   expression_2.map((item, idk) => {
+//     if (((item.includes('=') && item.split('=')[1] !== 0) || is_right) && item) {
+//       is_right = true;
+//       expression_r.push(+item.split('=').join('').split('*').join('').substr(1))
+//     } else {
+//       expression_l.push(+item.split('*').join('').substr(1))
+//     }
+//   })
+//   console.log(expression_l)
+//   console.log(expression_r)
+// }
+
 const reduceExpression = (expression, degree, degree_right) => {
   const rigth_side = expression.split('=')[1];
   const have_pow_char = expression.includes('^');
@@ -28,42 +54,48 @@ const reduceExpression = (expression, degree, degree_right) => {
   const a_right = +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
   let result = { first_part: `${(degree_right < degree) ? a - a_right : a_right - a}X^0`, second_part: false, third_part: false };
+  let result_f = "";
 
-  const b_right = (degree_right >= 1) ? +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') : null;
-  const b = (degree >= 1) ? +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 1 : null;
-
-  // 11x0 = 11x0 + 2x1
-  if (degree >= 1 || degree_right >= 1) {
-    result.second_part = (degree_right > degree) ? `${b_right}X^1` : `${b}X^1`
+  let expression_l = expression.split('=')[0].split(`${have_pow_char ? 'X^' : 'X'}`);
+  let expression_r = expression.split('=')[1].split(`${have_pow_char ? 'X^' : 'X'}`);
+  expression_l.shift()
+  expression_r.shift()
+  let is_right = false;
+  expression_l_split = [];
+  expression_r_split = [];
+  // parser("8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = 3 * X^0")
+  expression_l_split.push(a);
+  expression_r_split.push(a_right);
+  // console.log(expression_l)
+  // console.log(expression_r)
+  expression_l.map((item, idk) => {
+    expression_l_split.push(+item.split('*').join('').substr(1))
+  })
+  expression_r.map(item => {
+    expression_r_split.push(+item.split('*').join('').substr(1))
+  })
+  expression_l_split.pop()
+  expression_r_split.pop()
+  if (expression_l_split.length > expression_r_split.length) {
+    expression_l_split.map((item, id) => {
+      if (expression_r_split[id]) {
+        result_f += `${expression_l_split[id] - expression_r_split[id]} X^${id} `
+      } else {
+        result_f += `${expression_l_split[id]} X^${id} `
+      }
+    })
+  } else {
+    expression_r_split.map((item, id) => {
+      if (expression_l_split[id]) {
+        result_f += `${expression_r_split[id] - expression_l_split[id]} X^${id} `
+      } else {
+        result_f += `${expression_r_split[id]} X^${id} `
+      }
+    })
   }
-  
-  const c_right = (degree_right === 2) ? +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') : null;
-  const c = (degree === 2) ? +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') || 1 : null;
-  
-  // 11x0 = 11x0 + 2x1 + 2x2
-  if (degree === 2 || degree_right === 2) {
-    result.third_part = (degree_right > degree) ? `${c_right}X^2` : `${c}X^2`
-  }
-  console.log(degree)
-
-  if (degree >= 1 && b_right && b) {
-    result.second_part = `${b - b_right}X^1`
-  }
-  if (degree === 2 && c_right && c) {
-    result.third_part = `${c - c_right}X^2`
-  }
-  console.log(result.third_part)
-  console.log(result.second_part || '')
-  return `${result.first_part} ${result.second_part || ''} ${result.third_part || ''}`
-}
-
-const pow = (number, pow) => {
-  let result;
-  while (pow > 0) {
-    result = number * number;
-    pow--;
-  }
-  return result;
+  result_f += "= 0"
+  console.log(result_f)
+  return result_f;
 }
 
 const parser = (expression) => {
@@ -88,10 +120,7 @@ const parser = (expression) => {
   if (have_two_expr) {
     result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
     expression = result.reduced;
-    console.log("1", expression)
-    console.log("a", result.degree_number);
     result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
-    console.log("b", result.degree_number);
   }
   if (result.degree_number === 2) {
     result.solutions = degree_2(expression);
@@ -100,7 +129,7 @@ const parser = (expression) => {
   } else if (result.degree_number === 0) {
     result.solutions = degree_0(expression);
   } else {
-    console.log("sorry")
+    console.log("sorry", result)
   }
   console.log(result)
 }
@@ -130,11 +159,11 @@ const degree_2 = (expression) => {
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') || 1;
   const b = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 1;
   const c = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
-  let delta = pow(b, 2) - (4 * (a * c));
+  let delta = (b * b) - (4 * (a * c));
   let result = {};
-
+  result.delta = `${b}² - 4 * ${a} * ${c} = ${delta}`;
   if (delta < 0) {
-    const reduce = reducer(b, (2* a));
+    const reduce = reducer(b, (2 * a));
     let z1 = `${-reduce.numerator} - ${Math.sqrt(-delta)}i${(reduce.denominator ===  1) ? '' : ' / ' + reduce.denominator }`;
     let z2 = `${-reduce.numerator} + ${Math.sqrt(-delta)}i${(reduce.denominator === 1) ? '' : ' / ' + reduce.denominator }`;
     result.z1 = z1.toString();
@@ -148,6 +177,6 @@ const degree_2 = (expression) => {
   return (result);
 }
 
-parser("5 * X^0 + 4 * X^1 - 9.3 * X^2 = 1 * X^0")
+// parser("-5 * X^0 - 4 * X^1 - 9.3 * X^2 = 1 * X^0")
 // console.log("------------------------------------------------------------------------------------")
-// parser("5 * X^0 + 4 * X^1 = 4 * X^0")
+parser("8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = 3 * X^0")
