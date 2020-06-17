@@ -40,22 +40,22 @@ const reduceExpression = (expression) => {
   if (Object.keys(expression_l_splited).length > Object.keys(expression_r_splited).length) {
     Object.keys(expression_l_splited).map((item, id) => {
       if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
-        result += `${expression_l_splited[item].number - expression_r_splited[item].number} X^${item} + `
+        result += `${(expression_l_splited[item].number - expression_r_splited[item].number >= 0) ? '+' : ' '}${expression_l_splited[item].number - expression_r_splited[item].number} * X^${item}`
       } else {
-        result += `${expression_l_splited[item].number} X^${item} + `
+        result += `${(expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_l_splited[item].number} * X^${item}`
       }
     })
   } else {
     Object.keys(expression_r_splited).map((item, id) => {
       if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
-        result += `${expression_r_splited[item].number - expression_l_splited[item].number} X^${item} + `
+        result += `${(expression_r_splited[item].number - expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
       } else {
-        result += `${expression_r_splited[item].number} X^${item} + `
+        result += `${(expression_r_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number} * X^${item}`
       }
     })
   }
-  result = result.substring(0, result.length - 2);
-  result += "= 0"
+  // result = result.substring(0, result.length - 2);
+  result += " = 0"
   return result;
 }
 
@@ -117,9 +117,16 @@ const degree_1 = (expression) => {
 
 const degree_2 = (expression) => {
   const have_pow_char = expression.includes('^');
-  const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[1].split(`${have_pow_char ? 'X^2' : 'X2'}`)[0].split('*').join('') || 1;
-  const b = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 1;
-  const c = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
+  expression = expression.split('=')[0].split(/(?=\+)|(?=-)/g)
+  expression_splited = {};
+  expression.map(item => {
+    item = item.split('*').join('');
+    item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
+    expression_splited[+(item[1].trim())] = {number: +item[0]}
+  })
+  let a = +expression_splited[2].number
+  let b = +expression_splited[1].number
+  let c = +expression_splited[0].number
   let delta = (b * b) - (4 * (a * c));
   let result = {};
   result.delta = `${b}² - 4 * ${a} * ${c} = ${delta}`;
