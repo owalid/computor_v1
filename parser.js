@@ -1,4 +1,4 @@
-const operator = ["+", "*", "/", "-"];
+const operator = ["+", "-"];
 
 const sqrt = (number) => {
   let result;
@@ -20,47 +20,41 @@ const reducer = (numerator, denominator) => {
 }
 
 const reduceExpression = (expression) => {
-  const rigth_side = expression.split('=')[1];
   const have_pow_char = expression.includes('^');
-
-  const a_right = +rigth_side.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
-  const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1;
+  let expression_l = expression.split('=')[0].split(/(?=\+)|(?=-)/g);
+  let expression_r = expression.split('=')[1].split(/(?=\+)|(?=-)/g);
   let result = "";
 
-  let expression_l = expression.split('=')[0].split(`${have_pow_char ? 'X^' : 'X'}`);
-  let expression_r = expression.split('=')[1].split(`${have_pow_char ? 'X^' : 'X'}`);
-  expression_l.shift();
-  expression_r.shift();
-
-  expression_l_splited = [];
-  expression_r_splited = [];
-  expression_l_splited.push(a);
-  expression_r_splited.push(a_right);
+  expression_l_splited = {};
+  expression_r_splited = {};
   expression_l.map(item => {
-    expression_l_splited.push(+item.split('*').join('').substr(1))
+    item = item.split('*').join('');
+    item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
+    expression_l_splited[item[1]] = {number: +item[0]}
   })
   expression_r.map(item => {
-    expression_r_splited.push(+item.split('*').join('').substr(1))
+    item = item.split('*').join('');
+    item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
+    expression_r_splited[item[1]] = {number: +item[0]}
   })
-  expression_l_splited.pop()
-  expression_r_splited.pop()
-  if (expression_l_splited.length > expression_r_splited.length) {
-    expression_l_splited.map((item, id) => {
-      if (expression_r_splited[id]) {
-        result += `${expression_l_splited[id] - expression_r_splited[id]} X^${id}`
+  if (Object.keys(expression_l_splited).length > Object.keys(expression_r_splited).length) {
+    Object.keys(expression_l_splited).map((item, id) => {
+      if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
+        result += `${expression_l_splited[item].number - expression_r_splited[item].number} X^${item} + `
       } else {
-        result += `${expression_l_splited[id]} X^${id}`
+        result += `${expression_l_splited[item].number} X^${item} + `
       }
     })
   } else {
-    expression_r_splited.map((item, id) => {
-      if (expression_l_splited[id]) {
-        result += `${expression_r_splited[id] - expression_l_splited[id]} X^${id}`
+    Object.keys(expression_r_splited).map((item, id) => {
+      if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
+        result += `${expression_r_splited[item].number - expression_l_splited[item].number} X^${item} + `
       } else {
-        result += `${expression_r_splited[id]} X^${id}`
+        result += `${expression_r_splited[item].number} X^${item} + `
       }
     })
   }
+  result = result.substring(0, result.length - 2);
   result += "= 0"
   return result;
 }
@@ -146,4 +140,4 @@ const degree_2 = (expression) => {
 
 // parser("-5 * X^0 - 4 * X^1 - 9.3 * X^2 = 1 * X^0")
 // console.log("------------------------------------------------------------------------------------")
-parser("8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = 3 * X^0")
+parser("5 * X^0 + 4 * X^1 - 1 * X^2 = 2*X^2")
