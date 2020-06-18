@@ -19,6 +19,23 @@ const reducer = (numerator, denominator) => {
   return { numerator: numerator / gcd(numerator, denominator), denominator: denominator / gcd(numerator, denominator) }
 }
 
+function isInt(n) {
+  return n % 1 === 0;
+}
+
+const reducerSqrt = (sqrt_number) => {
+  let rest = 0;
+  let i = 2;
+  while (i * i <= sqrt_number) {
+    if (sqrt_number  % (i * i) === 0) {
+      sqrt_number = sqrt_number / (i * i);
+      rest = rest * i;
+    }
+    i++;
+  }
+  return {rest: rest, reduce_sqrt: sqrt_number};
+}
+
 const reduceExpression = (expression) => {
   const have_pow_char = expression.includes('^');
   let expression_l = expression.split('=')[0].split(/(?=\+)|(?=-)/g);
@@ -117,28 +134,34 @@ const degree_1 = (expression) => {
 
 const degree_2 = (expression) => {
   const have_pow_char = expression.includes('^');
-  expression = expression.split('=')[0].split(/(?=\+)|(?=-)/g)
+  expression = expression.split('=')[0].split(/(?=\+)|(?=-)/g);
   expression_splited = {};
   expression.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
     expression_splited[+(item[1].trim())] = {number: +item[0]}
   })
-  let a = +expression_splited[2].number
-  let b = +expression_splited[1].number
-  let c = +expression_splited[0].number
+  let a = +expression_splited[2].number;
+  let b = +expression_splited[1].number;
+  let c = +expression_splited[0].number;
   let delta = (b * b) - (4 * (a * c));
   let result = {};
   result.delta = `${b}² - 4 * ${a} * ${c} = ${delta}`;
   if (delta < 0) {
     const reduce = reducer(b, (2 * a));
-    let z1 = `${-reduce.numerator} - ${Math.sqrt(-delta)}i${(reduce.denominator ===  1) ? '' : ' / ' + reduce.denominator }`;
-    let z2 = `${-reduce.numerator} + ${Math.sqrt(-delta)}i${(reduce.denominator === 1) ? '' : ' / ' + reduce.denominator }`;
+    let z1 = `${-reduce.numerator} - ${sqrt(-delta)}i${(reduce.denominator ===  1) ? '' : ' / ' + reduce.denominator }`;
+    let z2 = `${-reduce.numerator} + ${sqrt(-delta)}i${(reduce.denominator === 1) ? '' : ' / ' + reduce.denominator }`;
     result.z1 = z1.toString();
     result.z2 = z2.toString();
   } else if (delta > 0) {
-    result.x1 = parseFloat((-b - Math.sqrt(delta)) / (2 * a), 3);
-    result.x2 = parseFloat((-b + Math.sqrt(delta)) / (2 * a), 3);
+    if (!isInt(parseFloat(sqrt(delta)))) {
+      const reduceDelta = reducerSqrt(delta)
+      const reduce = reducer(-b, (2 * a));
+      result.x1_reducer = `${reduce.denominator} - ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
+      result.x2_reducer = `${reduce.denominator} + ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
+    }
+    result.x1 = parseFloat((-b - Math.sqrt(delta)) / (2 * a));
+    result.x2 = parseFloat((-b + Math.sqrt(delta)) / (2 * a));
   } else {
     result.x0 = parseFloat(-b / (2 * a));
   }
