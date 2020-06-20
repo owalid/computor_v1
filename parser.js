@@ -27,7 +27,7 @@ const reducerSqrt = (sqrt_number) => {
   let rest = 0;
   let i = 2;
   while (i * i <= sqrt_number) {
-    if (sqrt_number  % (i * i) === 0) {
+    if (sqrt_number % (i * i) === 0) {
       sqrt_number = sqrt_number / (i * i);
       rest = rest * i;
     }
@@ -38,8 +38,8 @@ const reducerSqrt = (sqrt_number) => {
 
 const reduceExpression = (expression) => {
   const have_pow_char = expression.includes('^');
-  let expression_l = expression.split('=')[0].split(/(?=\+)|(?=-)/g);
-  let expression_r = expression.split('=')[1].split(/(?=\+)|(?=-)/g);
+  let expression_l = expression.split('=')[0].split(/(?=\+)|(?='-')/g);
+  let expression_r = expression.split('=')[1].split(/(?=\+)|(?='-')/g);
   let result = "";
 
   expression_l_splited = {};
@@ -64,14 +64,17 @@ const reduceExpression = (expression) => {
     })
   } else {
     Object.keys(expression_r_splited).map((item, id) => {
-      if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
-        result += `${(expression_r_splited[item].number - expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
+      if (Object.keys(expression_l_splited).indexOf(item) !== -1 && expression_l_splited[item].number) {
+        if (+expression_l_splited[item].number > 0) {
+          result += `${(expression_r_splited[item].number - expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
+        } else {
+          result += `${(expression_r_splited[item].number + expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number + expression_l_splited[item].number} * X^${item}`
+        }
       } else {
         result += `${(expression_r_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number} * X^${item}`
       }
     })
   }
-  // result = result.substring(0, result.length - 2);
   result += " = 0"
   return result;
 }
@@ -139,7 +142,9 @@ const degree_2 = (expression) => {
   expression.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
-    expression_splited[+(item[1].trim())] = {number: +item[0]}
+    if (item[1] && item[1].trim()) {
+      expression_splited[+(item[1].trim())] = {number: +item[0]}
+    }
   })
   let a = +expression_splited[2].number;
   let b = +expression_splited[1].number;
@@ -157,8 +162,10 @@ const degree_2 = (expression) => {
     if (!isInt(parseFloat(sqrt(delta)))) {
       const reduceDelta = reducerSqrt(delta)
       const reduce = reducer(-b, (2 * a));
-      result.x1_reducer = `${reduce.denominator} - ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
-      result.x2_reducer = `${reduce.denominator} + ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
+      if (reduce.numerator < 100 || reduce.denominator < 100) {
+        result.x1_reducer = `${reduce.numerator} - ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
+        result.x2_reducer = `${reduce.numerator} + ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
+      }
     }
     result.x1 = parseFloat((-b - Math.sqrt(delta)) / (2 * a));
     result.x2 = parseFloat((-b + Math.sqrt(delta)) / (2 * a));
@@ -168,6 +175,8 @@ const degree_2 = (expression) => {
   return (result);
 }
 
-// parser("-5 * X^0 - 4 * X^1 - 9.3 * X^2 = 1 * X^0")
+// parser("5 * X^0 + 4 * X^1 - 5 * X^2 = 0")
+// parser("4 * X^0 + 4 * X^1 - 9.3 * X^2 = 0")
+parser(" - 8 X^0 + 7 * X^1 = 7 X^0 + 4 X^1")
 // console.log("------------------------------------------------------------------------------------")
-parser("5 * X^0 + 4 * X^1 - 1 * X^2 = 2*X^2")
+// parser("5 * X^0 + 4 * X^1 - 1 * X^2 = 2*X^2")
