@@ -54,7 +54,7 @@ const reduceExpression = (expression) => {
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
     expression_r_splited[item[1]] = {number: +item[0]}
   })
-  if (Object.keys(expression_l_splited).length > Object.keys(expression_r_splited).length) {
+  if (Object.keys(expression_l_splited).length >= Object.keys(expression_r_splited).length) {
     Object.keys(expression_l_splited).map((item, id) => {
       if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
         result += `${(expression_l_splited[item].number - expression_r_splited[item].number >= 0) ? '+' : ' '}${expression_l_splited[item].number - expression_r_splited[item].number} * X^${item}`
@@ -128,10 +128,9 @@ const degree_1 = (expression) => {
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 0;
   const b = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
   let result = {};
-  
   if (a !== 0) {
-    result.x = b / -a;
-  }
+    result.x = - b / a;
+  } 
   return (result);
 }
 
