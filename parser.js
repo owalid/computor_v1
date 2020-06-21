@@ -36,6 +36,28 @@ const reducerSqrt = (sqrt_number) => {
   return {rest: rest, reduce_sqrt: sqrt_number};
 }
 
+const simplifyExpression = (expression, degree) => {
+  const have_pow_char = expression.includes('^');
+  const expression_splited = {};
+  const result = {degree: degree, expression: ''};
+  expression = expression.split('=')[0].split(/(?=\+)|(?='-')/g);
+  expression.map(item => {
+    item = item.split('*').join('');
+    item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
+    expression_splited[item[1].trim()] = {number: +item[0]}
+  })
+  console.log((Object.keys(expression_splited).length - 1).toString())
+  if (expression_splited[(Object.keys(expression_splited).length - 1).toString()].number === 0) {
+    delete expression_splited[(Object.keys(expression_splited).length - 1).toString()];
+    result.degree--;
+  }
+  Object.keys(expression_splited).map((item, id) => {
+    result.expression += `${(expression_splited[item].number >= 0) ? '+' : ' '}${expression_splited[item].number} * X^${item}`
+  })
+  result.expression = result.expression.trim();
+  return result;
+}
+
 const reduceExpression = (expression) => {
   const have_pow_char = expression.includes('^');
   let expression_l = expression.split('=')[0].split(/(?=\+)|(?='-')/g);
@@ -64,6 +86,8 @@ const reduceExpression = (expression) => {
     })
   } else {
     Object.keys(expression_r_splited).map((item, id) => {
+      console.log(expression_r_splited)
+      console.log(expression_l_splited)
       if (Object.keys(expression_l_splited).indexOf(item) !== -1 && expression_l_splited[item].number) {
         if (+expression_l_splited[item].number > 0) {
           result += `${(expression_r_splited[item].number - expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
@@ -103,6 +127,10 @@ const parser = (expression) => {
     expression = result.reduced;
     result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
   }
+  let tmp = simplifyExpression(expression, result.degree_number);
+  result.reduced = tmp.expression;
+  expression = tmp.expression;
+  result.degree_number = tmp.degree;
   if (result.degree_number === 2) {
     result.solutions = degree_2(expression);
   } else if (result.degree_number === 1) {
@@ -127,10 +155,10 @@ const degree_1 = (expression) => {
   const have_pow_char = expression.includes('^');
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 0;
   const b = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
-  let result = {};
+  let result = { x: 0 };
   if (a !== 0) {
     result.x = - b / a;
-  } 
+  }
   return (result);
 }
 
@@ -176,6 +204,6 @@ const degree_2 = (expression) => {
 
 // parser("5 * X^0 + 4 * X^1 - 5 * X^2 = 0")
 // parser("4 * X^0 + 4 * X^1 - 9.3 * X^2 = 0")
-parser(" - 8 X^0 + 7 * X^1 = 7 X^0 + 4 X^1")
+parser(" - 8 X^0 + 0 * X^1 = 0")
 // console.log("------------------------------------------------------------------------------------")
 // parser("5 * X^0 + 4 * X^1 - 1 * X^2 = 2*X^2")
