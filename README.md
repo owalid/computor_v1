@@ -1,5 +1,29 @@
-# computor_v1
+# comp_web
 
-Le but de ce sujet est de vous faire coder un programme qui résout des équationssimples. Le programme prendra en paramètre une équation polynomiale. C’est-à-dire nefaisant intervenir que des puissances, aucune fonction compliquée. Le programme devraafficher sa (ses) solution(s).Pourquoi des polynômes ? Parce que c’est l’un des outils mathématiques les plussimples et les plus puissants. On s’en sert dans tous les domaines et à tous les niveauxpour simplifier et exprimer beaucoup de choses. Par exemple, les fonctionssin,cos, ettansont calculées à l’aide de polynômes.
+## Project setup
+```
+yarn install
+```
 
-The purpose of this project is to make you code a program that solves simple equations. The program takes a polynomial equation. That is to say, involving only powers, nocomplicated functions. The program should display its solution(s). Why polynomials? Because it is one of the simplest and most powerful mathematicaltools. It is used in all domains and at all levels to simplify and express many things. Forexample, the functionssin,cos, andtanare computed using polynomials.
+### Compiles and hot-reloads for development
+```
+yarn run serve
+```
+
+### Compiles and minifies for production
+```
+yarn run build
+```
+
+### Run your tests
+```
+yarn run test
+```
+
+### Lints and fixes files
+```
+yarn run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
