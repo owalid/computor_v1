@@ -1,24 +1,28 @@
 <template>
-  <div>
+  <v-container>
     <v-form
     ref="form"
     v-model="valid"
     lazy-validation
     >
-      <v-text-field
+      <v-textarea
         v-model="equation"
+        name="input-7-1"
+        label="Equation"
         required
       />
-      <v-btn
-        :disabled="!valid"
-        color="success"
-        class="mr-4"
-        @click="validate"
-      >
-        Calulate
-      </v-btn>
+      <v-row align-center>
+        <v-btn
+          :disabled="!valid"
+          color="success"
+          class="mx-auto"
+          @click="validate"
+        >
+          Calulate
+        </v-btn>
+      </v-row>
     </v-form>
-  </div>
+  </v-container>
 </template>
 <script>
 export default {
@@ -26,12 +30,14 @@ export default {
   data() {
     return {
       valid: '',
-      equation: ''
+      equation: '',
+      result: ''
     }
   },
   methods: {
     validate() {
       console.log('hello world')
+      this.$calculate()
     }
   }
 }
