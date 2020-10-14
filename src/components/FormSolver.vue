@@ -22,6 +22,18 @@
         </v-btn>
       </v-row>
     </v-form>
+    <v-row>
+      {{result}}
+    </v-row>
+    <v-row>
+      {{result.degree_number}}
+    </v-row>
+    <v-row>
+      {{result.reduced}}
+    </v-row>
+    <v-row>
+      {{result.solutions}}
+    </v-row>
   </v-container>
 </template>
 <script>
@@ -37,7 +49,7 @@ export default {
   methods: {
     validate() {
       console.log('hello world')
-      this.$calculate()
+      this.result = this.$calculate(this.equation)
     }
   }
 }

@@ -64,8 +64,8 @@ const reduceExpression = (expression) => {
   let expression_r = expression.split('=')[1].split(/(?=\+)|(?='-')/g);
   let result = "";
 
-  expression_l_splited = {};
-  expression_r_splited = {};
+  let expression_l_splited = {};
+  let expression_r_splited = {};
   expression_l.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
@@ -166,16 +166,6 @@ const degree_2 = (expression) => {
   return (result);
 }
 
-// parser("5 * X^0 + 4 * X^1 - 5 * X^2 = 0")
-// parser("4 * X^0 + 4 * X^1 - 9.3 * X^2 = 0")
-parser(" - 8 X^0 + 0 * X^1 = 0")
-// console.log("------------------------------------------------------------------------------------")
-// parser("5 * X^0 + 4 * X^1 - 1 * X^2 = 2*X^2")
-
-
-
-
-
 export default {
   install(Vue, options) {
   Vue.prototype.$calculate = (expression) => {
@@ -185,6 +175,7 @@ export default {
     expression = expression.toUpperCase();
 
     let degree_number_left;
+    let degree_number_right;
     if (expression.includes('^')) {
       const split_degree = expression.split('^');
       const index = (have_two_expr) ? 2 : 1;
@@ -220,3 +211,10 @@ export default {
   }
 }
 }
+
+
+// parser("5 * X^0 + 4 * X^1 - 5 * X^2 = 0")
+// parser("4 * X^0 + 4 * X^1 - 9.3 * X^2 = 0")
+// parser(" - 8 X^0 + 0 * X^1 = 0")
+// console.log("------------------------------------------------------------------------------------")
+// parser("5 * X^0 + 4 * X^1 - 1 * X^2 = 2*X^2")
