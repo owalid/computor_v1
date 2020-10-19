@@ -38,21 +38,22 @@ const reducerSqrt = (sqrt_number) => {
 
 const simplifyExpression = (expression, degree) => {
   const have_pow_char = expression.includes('^');
-  const expression_splited = {};
-  const result = {degree: degree, expression: ''};
-  expression = expression.split('=')[0].split(/(?=\+)|(?='-')/g);
+  let expression_splited = {};
+  const result = { degree: degree, expression: '' };
+  let cpt_degree = 0;
+  expression = expression.split('=')[0].split(/(?=\+)|(?=\-)/g);
   expression.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
-    expression_splited[item[1].trim()] = {number: +item[0]}
+    if (+item[0] === 0) {
+      result.degree--;
+    } else {
+      expression_splited[cpt_degree] = {number: +item[0]}
+      cpt_degree++;
+    }
   })
-  console.log((Object.keys(expression_splited).length - 1).toString())
-  if (expression_splited[(Object.keys(expression_splited).length - 1).toString()].number === 0) {
-    delete expression_splited[(Object.keys(expression_splited).length - 1).toString()];
-    result.degree--;
-  }
   Object.keys(expression_splited).map((item, id) => {
-    result.expression += `${(expression_splited[item].number >= 0) ? '+' : ' '}${expression_splited[item].number} * X^${item}`
+    result.expression += `${(expression_splited[item].number >= 0 && id > 0) ? ' + ' : ' '}${expression_splited[item].number} * X^${item}`
   })
   result.expression = result.expression.trim();
   return result;
@@ -60,8 +61,8 @@ const simplifyExpression = (expression, degree) => {
 
 const reduceExpression = (expression) => {
   const have_pow_char = expression.includes('^');
-  let expression_l = expression.split('=')[0].split(/(?=\+)|(?='-')/g);
-  let expression_r = expression.split('=')[1].split(/(?=\+)|(?='-')/g);
+  let expression_l = expression.split('=')[0].split(/(?=\+)|(?=\-)/g);
+  let expression_r = expression.split('=')[1].split(/(?=\+)|(?=\-)/g);
   let result = "";
 
   let expression_l_splited = {};
@@ -76,6 +77,8 @@ const reduceExpression = (expression) => {
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
     expression_r_splited[item[1]] = {number: +item[0]}
   })
+  console.log(expression_l_splited)
+  console.log(expression_r_splited)
   if (Object.keys(expression_l_splited).length >= Object.keys(expression_r_splited).length) {
     Object.keys(expression_l_splited).map((item, id) => {
       if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
@@ -103,21 +106,17 @@ const reduceExpression = (expression) => {
   return result;
 }
 
-const parser = (expression) => {
-  
-}
-
 const degree_0 = (expression) => {
   const have_pow_char = expression.includes('^');
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
-  let result = {};
+  let result = {x: a};
 
-  return result.x = a;
+  return result;
 }
 
 const degree_1 = (expression) => {
   const have_pow_char = expression.includes('^');
-  const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('') || 0;
+  const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[1].split(`${have_pow_char ? 'X^1' : 'X1'}`)[0].split('*').join('').replace('+', '').replace(' ', '') || 0;
   const b = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
   let result = { x: 0 };
   if (a !== 0) {
@@ -129,8 +128,9 @@ const degree_1 = (expression) => {
 const degree_2 = (expression) => {
   const have_pow_char = expression.includes('^');
   expression = expression.split('=')[0].split(/(?=\+)|(?=-)/g);
-  expression_splited = {};
+  let expression_splited = {};
   expression.map(item => {
+    item = item.replace(' ', '');
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
     if (item[1] && item[1].trim()) {
@@ -154,8 +154,9 @@ const degree_2 = (expression) => {
       const reduceDelta = reducerSqrt(delta)
       const reduce = reducer(-b, (2 * a));
       if (reduce.numerator < 100 || reduce.denominator < 100) {
-        result.x1_reducer = `${reduce.numerator} - ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
-        result.x2_reducer = `${reduce.numerator} + ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
+        result.reduced_solutions = {}
+        result.reduced_solutions.x1_reducer = `${reduce.numerator} - ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
+        result.reduced_solutions.x2_reducer = `${reduce.numerator} + ${(reduceDelta.rest === 0) ? '' : reduceDelta.rest}√${reduceDelta.reduce_sqrt} / ${reduce.denominator}`
       }
     }
     result.x1 = parseFloat((-b - Math.sqrt(delta)) / (2 * a));
@@ -163,13 +164,13 @@ const degree_2 = (expression) => {
   } else {
     result.x0 = parseFloat(-b / (2 * a));
   }
-  return (result);
+  return result;
 }
 
 export default {
   install(Vue, options) {
   Vue.prototype.$calculate = (expression) => {
-    let have_two_expr = (expression.includes('=') && expression.split('=')[1] !== 0)
+    let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
     expression = expression.trim();
     expression = expression.split(' ').join('');
     expression = expression.toUpperCase();
@@ -199,15 +200,26 @@ export default {
     result.degree_number = tmp.degree;
     if (result.degree_number === 2) {
       result.solutions = degree_2(expression);
+      result.delta = result.solutions.delta;
+      if (Object.keys(result.solutions).includes('reduced_solutions')) {
+        result.reduced_solutions = result.solutions.reduced_solutions;
+        delete result.solutions.reduced_solutions;
+      }
+      delete result.solutions.delta;
     } else if (result.degree_number === 1) {
       result.solutions = degree_1(expression);
     } else if (result.degree_number === 0) {
       result.solutions = degree_0(expression);
+    } else if (result.degree_number >= 3) {
+      result = null;
+      result = {}
+      result.error = 'Veuillez entrer un polynome de rang inferieur ou egal à 2'
     } else {
-      console.log("sorry", result)
+      result = null;
+      result = {}
+      result.error = 'Veuillez rentrer une equation valide'
     }
     return result;
-    // console.log(result)
   }
 }
 }
