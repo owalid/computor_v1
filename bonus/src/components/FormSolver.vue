@@ -28,24 +28,32 @@
     </v-row> -->
     <v-row v-if="Object.keys(result).includes('degree_number')">
       <v-col cols="4">
-        <span class="font-weight-bold mr-5">Polynome de degré:</span>
+        <span class="font-weight-bold mr-5">Polynome de degré :</span>
       </v-col>
       <v-col>
-        <span class="font-weight-light">{{result.degree_number}}</span>
+        <span class="font-weight-light">{{ result.degree_number }}</span>
       </v-col>
     </v-row>
     <v-row v-if="Object.keys(result).includes('reduced')">
       <v-col cols="4">
-       <span class="font-weight-bold mr-5">Expression simplifié:</span>
+       <span class="font-weight-bold mr-5">Expression simplifié :</span>
       </v-col>
       <v-col>
-       <span class="font-weight-light">{{result.reduced}} = 0</span>
+       <span class="font-weight-light">{{ result.reduced }} = 0</span>
       </v-col>      
+    </v-row>
+    <v-row v-if="result.delta">
+      <v-col cols="4">
+       <span class="font-weight-bold mr-5">Δ :</span>
+      </v-col>
+      <v-col>
+       <span class="font-weight-light">{{ result.delta }}</span>
+      </v-col>   
     </v-row>
     <v-row>
       <v-row v-for="(reduced_solution, reduced_solution_key) in result.reduced_solutions" :key="reduced_solution_key">
         <v-col cols="6">
-          <span class="font-weight-bold">{{reduced_solution_key}}:</span> 
+          <span class="font-weight-bold">{{ reduced_solution_key }} :</span> 
         </v-col>
         <v-col cols="6">
           <span class="font-weight-light"> {{ reduced_solution }} </span>
@@ -55,7 +63,7 @@
     <v-row>
       <v-row v-for="(solution, solution_key) in result.solutions" :key="solution_key">
         <v-col cols="6">
-          <span class="font-weight-bold">{{solution_key}}:</span> 
+          <span class="font-weight-bold">{{ solution_key }} :</span> 
         </v-col>
         <v-col cols="6">
           <span class="font-weight-light"> {{ solution }} </span>
