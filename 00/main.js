@@ -59,7 +59,7 @@ const simplifyExpression = (expression, degree) => {
   return result;
 }
 
-const reduceExpression = (expression) => {
+const reduceExpression = (expression, degree) => {
   const have_pow_char = expression.includes('^');
   let expression_l = expression.split('=')[0].split(/(?=\+)|(?=\-)/g);
   let expression_r = expression.split('=')[1].split(/(?=\+)|(?=\-)/g);
@@ -67,6 +67,7 @@ const reduceExpression = (expression) => {
 
   let expression_l_splited = {};
   let expression_r_splited = {};
+  console.log("here !")
   expression_l.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
@@ -79,6 +80,13 @@ const reduceExpression = (expression) => {
   })
   console.log(expression_l_splited)
   console.log(expression_r_splited)
+  if (degree === 0) {
+    if (expression_l_splited['0'].number !== expression_r_splited['0'].number) {
+      return { error: "Equation impossible" }
+    } else {
+      return { result: 'Tout les réels sont solutions' }
+    }
+  }
   if (Object.keys(expression_l_splited).length >= Object.keys(expression_r_splited).length) {
     Object.keys(expression_l_splited).map((item, id) => {
       if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
@@ -106,7 +114,8 @@ const reduceExpression = (expression) => {
   return result;
 }
 
-const degree_0 = (expression) => {
+const degree_0 = (expression, have_two_expr) => {
+  console.log("have two expr", expression)
   const have_pow_char = expression.includes('^');
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
   let result = {x: a};
@@ -188,8 +197,16 @@ calculate = (expression) => {
   }
   let result =  { degree_number: degree_number_left, reduced: null }
   if (have_two_expr) {
+    // console.log("hello, result:", result)
     result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
+    if (typeof result.reduced === 'object' && Object.keys(result.reduced).includes('error')) {
+      return result.reduced
+    }
+    if (result.degree_number === 0) {
+      return result.reduced
+    }
     expression = result.reduced;
+    console.log(expression)
     result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
   }
   let tmp = simplifyExpression(expression, result.degree_number);
@@ -207,7 +224,7 @@ calculate = (expression) => {
   } else if (result.degree_number === 1) {
     result.solutions = degree_1(expression);
   } else if (result.degree_number === 0) {
-    result.solutions = degree_0(expression);
+    result.error = "Equation impossible"
   } else if (result.degree_number >= 3) {
     result = null;
     result = {}
@@ -234,3 +251,4 @@ if (args.length === 1) {
 } else {
   console.error("Veuillez entré une equation bien formaté")
 }
+
