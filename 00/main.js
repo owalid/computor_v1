@@ -1,5 +1,9 @@
 const operator = ["+", "-"];
 
+getMax = (nb1, nb2) => {
+  return (nb1 > nb2) ? +nb1 : +nb2
+}
+
 const sqrt = (number) => {
   let result;
   let x1 = number / 2;
@@ -40,22 +44,25 @@ const simplifyExpression = (expression, degree) => {
   const have_pow_char = expression.includes('^');
   let expression_splited = {};
   const result = { degree: degree, expression: '' };
-  let cpt_degree = 0;
   expression = expression.split('=')[0].split(/(?=\+)|(?=\-)/g);
   expression.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
-    if (+item[0] === 0) {
-      result.degree--;
+    if (Object.keys(expression_splited).includes(item[1])) {
+      expression_splited[+item[1]].number += +item[0]
     } else {
-      expression_splited[cpt_degree] = {number: +item[0]}
-      cpt_degree++;
+      if (+item[0] === 0) {
+        result.degree--;
+      } else {
+        expression_splited[+item[1]] = {number: +item[0]}
+      }
     }
   })
   Object.keys(expression_splited).map((item, id) => {
     result.expression += `${(expression_splited[item].number >= 0 && id > 0) ? ' + ' : ' '}${expression_splited[item].number} * X^${item}`
   })
   result.expression = result.expression.trim();
+  result.degree = Object.keys(expression_splited).length - 1
   return result;
 }
 
@@ -67,24 +74,21 @@ const reduceExpression = (expression, degree) => {
 
   let expression_l_splited = {};
   let expression_r_splited = {};
-  console.log("here !")
   expression_l.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
-    expression_l_splited[item[1]] = {number: +item[0]}
+    expression_l_splited[+item[1]] = {number: +item[0]}
   })
   expression_r.map(item => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
-    expression_r_splited[item[1]] = {number: +item[0]}
+    expression_r_splited[+item[1]] = {number: +item[0]}
   })
-  console.log(expression_l_splited)
-  console.log(expression_r_splited)
-  if (degree === 0) {
+  if (degree === 0 && Object.keys(expression_l_splited).length === 1 && Object.keys(expression_r_splited).length === 1) {
     if (expression_l_splited['0'].number !== expression_r_splited['0'].number) {
       return { error: "Equation impossible" }
     } else {
-      return { result: 'Tout les réels sont solutions' }
+      return { message: 'Tout les réels sont solutions' }
     }
   }
   if (Object.keys(expression_l_splited).length >= Object.keys(expression_r_splited).length) {
@@ -97,8 +101,6 @@ const reduceExpression = (expression, degree) => {
     })
   } else {
     Object.keys(expression_r_splited).map((item, id) => {
-      console.log(expression_r_splited)
-      console.log(expression_l_splited)
       if (Object.keys(expression_l_splited).indexOf(item) !== -1 && expression_l_splited[item].number) {
         if (+expression_l_splited[item].number > 0) {
           result += `${(expression_r_splited[item].number - expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
@@ -115,7 +117,6 @@ const reduceExpression = (expression, degree) => {
 }
 
 const degree_0 = (expression, have_two_expr) => {
-  console.log("have two expr", expression)
   const have_pow_char = expression.includes('^');
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
   let result = {x: a};
@@ -142,23 +143,26 @@ const degree_2 = (expression) => {
     item = item.replace(' ', '');
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
+    index = +(item[1].trim())
     if (item[1] && item[1].trim()) {
-      expression_splited[+(item[1].trim())] = {number: +item[0]}
+      expression_splited[+index] = {number: +item[0]}
     }
   })
-  let a = +expression_splited[2].number;
-  let b = +expression_splited[1].number;
-  let c = +expression_splited[0].number;
+  let a = ((Object.keys(expression_splited).includes(2) || Object.keys(expression_splited).includes('2')) && Object.keys(expression_splited[2]).includes('number')) ? +expression_splited[2].number : 0;
+  let b = ((Object.keys(expression_splited).includes(1) || Object.keys(expression_splited).includes('1')) && Object.keys(expression_splited[1]).includes('number')) ? +expression_splited[1].number : 0;
+  let c = ((Object.keys(expression_splited).includes(0) || Object.keys(expression_splited).includes('0')) && Object.keys(expression_splited[0]).includes('number')) ? +expression_splited[0].number : 0;
   let delta = (b * b) - (4 * (a * c));
   let result = {};
-  result.delta = `${b}² - 4 * ${a} * ${c} = ${delta}`;
+  result.delta = { value: `${b}² - 4 * ${a} * ${c} = ${delta}`, sign: "" };
   if (delta < 0) {
+    result.delta.sign = "Negatif"
     const reduce = reducer(b, (2 * a));
     let z1 = `${-reduce.numerator} - ${sqrt(-delta)}i${(reduce.denominator ===  1) ? '' : ' / ' + reduce.denominator }`;
     let z2 = `${-reduce.numerator} + ${sqrt(-delta)}i${(reduce.denominator === 1) ? '' : ' / ' + reduce.denominator }`;
     result.z1 = z1.toString();
     result.z2 = z2.toString();
   } else if (delta > 0) {
+    result.delta.sign = "Positif"
     if (!isInt(parseFloat(sqrt(delta)))) {
       const reduceDelta = reducerSqrt(delta)
       const reduce = reducer(-b, (2 * a));
@@ -171,9 +175,75 @@ const degree_2 = (expression) => {
     result.x1 = parseFloat((-b - Math.sqrt(delta)) / (2 * a));
     result.x2 = parseFloat((-b + Math.sqrt(delta)) / (2 * a));
   } else {
+    result.delta.sign = "Nul"
     result.x0 = parseFloat(-b / (2 * a));
   }
   return result;
+}
+
+cleanExpression = (expression, have_two_expr) => {
+  splited_with_equals = expression.split('=')
+  expression_l_splited = splited_with_equals[0].split(/(?=\+)|(?=\-)/g);
+  let result = ""
+  expression_l_splited.map(item => {
+    const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+'
+    item = item.replace(/(\+)|(\-)/g, '')
+    if (item.includes('X') && item.indexOf('X') === item.length - 1) {
+      number = item.split('X')[0]
+      item = `${number}X^1`
+    }
+    if (!item.includes('X')) {
+      result += `${item}*X^0`
+    } else if (item.includes('X') && !isInt(+item.charAt(0))) {
+      result += `${sign}1${item}`
+    } else {
+      result += `${sign}${item}`
+    }
+  })
+  if (have_two_expr) {
+    result += '='
+    expression_r_splited = splited_with_equals[1].split(/(?=\+)|(?=\-)/g);
+    expression_r_splited.map(item => {
+      const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+'
+      item = item.replace(/(\+)|(\-)/g, '')
+      if (item === 'X') {
+        item = '1X^1'
+      }
+      if (!item.includes('X')) {
+        result += `${item}*X^0`
+      } else if (item.includes('X') && !isInt(+item.charAt(0))) {
+        result += `${sign}1${item}`
+      } else {
+        result += `${sign}${item}`
+      }
+    })
+  }
+  return result
+}
+
+getDegrees = (expression, have_two_expr) => {
+  splited_with_equals = expression.split('=')
+  expression_l_splited = splited_with_equals[0].split(/(?=\+)|(?=\-)/g);
+  let cpt_r = 0
+  let cpt_l = 0
+  expression_l_splited.map(item => {
+    item = item.replace(/(\+)|(\-)/g, '')
+    const current_degree = item.charAt(item.length - 1)
+    if (+current_degree > cpt_l) {
+      cpt_l = +current_degree
+    }
+  })
+  if (have_two_expr) {
+    expression_r_splited = splited_with_equals[1].split(/(?=\+)|(?=\-)/g);
+    expression_r_splited.map(item => {
+      item = item.replace(/(\+)|(\-)/g, '')
+      const current_degree = item.charAt(item.length - 1)
+      if (+current_degree > cpt_r) {
+        cpt_r = +current_degree
+      }
+    })
+  }
+  return { left: +cpt_l, right: +cpt_r }
 }
 
 calculate = (expression) => {
@@ -181,38 +251,26 @@ calculate = (expression) => {
   expression = expression.trim();
   expression = expression.split(' ').join('');
   expression = expression.toUpperCase();
+  expression = cleanExpression(expression, have_two_expr);
 
-  let degree_number_left;
-  let degree_number_right;
-  if (expression.includes('^')) {
-    const split_degree = expression.split('^');
-    const index = (have_two_expr) ? 2 : 1;
-    degree_number_left = +split_degree[split_degree.length - index].charAt(0);
-    degree_number_right = (have_two_expr) ? +split_degree[split_degree.length - 1].charAt(0) : null;
-  } else {
-    const split_degree = expression.split('X');
-    const index = (have_two_expr) ? 2 : 1;
-    degree_number_left = +split_degree[split_degree.length - index].charAt(0);
-    degree_number_right = (have_two_expr) ? +split_degree[split_degree.length - 1].charAt(0) : null;
-  }
-  let result =  { degree_number: degree_number_left, reduced: null }
+  const degrees = getDegrees(expression, have_two_expr)
+  let degree_number_left = degrees.left;
+  let degree_number_right = degrees.right;
+  const biggest_degree = +getMax(degree_number_left, degree_number_right)
+  let result =  { degree_number: biggest_degree, reduced: null }
+
   if (have_two_expr) {
-    // console.log("hello, result:", result)
     result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
-    if (typeof result.reduced === 'object' && Object.keys(result.reduced).includes('error')) {
-      return result.reduced
-    }
-    if (result.degree_number === 0) {
+    if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof result.reduced === 'object' && Object.keys(result.reduced).includes('error'))) {
       return result.reduced
     }
     expression = result.reduced;
-    console.log(expression)
     result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
   }
-  let tmp = simplifyExpression(expression, result.degree_number);
-  result.reduced = tmp.expression;
-  expression = tmp.expression;
-  result.degree_number = tmp.degree;
+  let simplify_expr = simplifyExpression(expression, result.degree_number);
+  result.reduced = simplify_expr.expression;
+  expression = simplify_expr.expression;
+  result.degree_number = +simplify_expr.degree;
   if (result.degree_number === 2) {
     result.solutions = degree_2(expression);
     result.delta = result.solutions.delta;
@@ -224,7 +282,7 @@ calculate = (expression) => {
   } else if (result.degree_number === 1) {
     result.solutions = degree_1(expression);
   } else if (result.degree_number === 0) {
-    result.error = "Equation impossible"
+    result.error = "Equation impossible..."
   } else if (result.degree_number >= 3) {
     result = null;
     result = {}
@@ -237,18 +295,24 @@ calculate = (expression) => {
   return result;
 }
 
-// parser("5 * X^0 + 4 * X^1 - 5 * X^2 = 0")
-// parser("4 * X^0 + 4 * X^1 - 9.3 * X^2 = 0")
-// parser(" - 8 X^0 + 0 * X^1 = 0")
-// console.log("------------------------------------------------------------------------------------")
-// parser("5 * X^0 + 4 * X^1 - 1 * X^2 = 2*X^2")
-
 
 const args = process.argv.slice(2);
 if (args.length === 1) {
   console.log(`Equation: ${args[0]}\n`)
-  console.log(calculate(args[0]))
+  const res = calculate(args[0])
+  if (Object.keys(res).includes("error")) {
+    console.error(res.error)
+  } else if (Object.keys(res).includes("message")) {
+    console.log(res.message)
+  } else {
+    console.log(`Equation de degré: ${res.degree_number}\n`)
+    console.log(`Expression simplifié: ${res.reduced} = 0\n`)
+    if (Object.keys(res).includes("delta") && res.delta) {
+      console.log(`Δ : ${res.delta.value}`)
+      console.log(`Signe de delta: ${res.delta.sign}\n`)
+    }
+    console.log('Solutions: \n', res.solutions)
+  }
 } else {
-  console.error("Veuillez entré une equation bien formaté")
+  console.error("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"")
 }
-
