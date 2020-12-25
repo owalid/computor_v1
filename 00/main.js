@@ -202,7 +202,6 @@ cleanExpression = (expression, have_two_expr) => {
       result += `${sign}${item}`
     }
   })
-  console.log("result", result)
   if (have_two_expr) {
     result += '='
     expression_r_splited = splited_with_equals[1].split(/(?=\+)|(?=\-)/g);
@@ -319,7 +318,7 @@ calculate = (expression) => {
     }
   }
 } else {
-  color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"", "red")
+  color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js \"<Equation>\"", "red")
 }
 
 
