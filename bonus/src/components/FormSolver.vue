@@ -23,9 +23,6 @@
         </v-btn>
       </v-row>
     </v-form>
-    <!-- <v-row>
-      {{result}}
-    </v-row> -->
     <v-row v-if="Object.keys(result).includes('degree_number')">
       <v-col cols="4">
         <span class="font-weight-bold mr-5">Polynome de degré :</span>
@@ -89,7 +86,6 @@ export default {
   },  
   methods: {
     validate() {
-      console.log('hello world')
       this.result = this.$calculate(this.equation)
       console.log(this.result);
     }

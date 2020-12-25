@@ -1,3 +1,5 @@
+const color = require('./color')
+
 const operator = ["+", "-"];
 
 getMax = (nb1, nb2) => {
@@ -37,7 +39,7 @@ const reducerSqrt = (sqrt_number) => {
     }
     i++;
   }
-  return {rest: rest, reduce_sqrt: sqrt_number};
+  return { rest: rest, reduce_sqrt: sqrt_number }
 }
 
 const simplifyExpression = (expression, degree) => {
@@ -49,12 +51,12 @@ const simplifyExpression = (expression, degree) => {
     item = item.split('*').join('');
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
     if (Object.keys(expression_splited).includes(item[1])) {
-      expression_splited[+item[1]].number += +item[0]
+      expression_splited[+item[1]].number += (isInt(+item[0])) ? +item[0] : 0
     } else {
       if (+item[0] === 0) {
         result.degree--;
       } else {
-        expression_splited[+item[1]] = {number: +item[0]}
+        expression_splited[+item[1]] = {number: (isInt(+item[0])) ? +item[0] : 0}
       }
     }
   })
@@ -92,7 +94,7 @@ const reduceExpression = (expression, degree) => {
     }
   }
   if (Object.keys(expression_l_splited).length >= Object.keys(expression_r_splited).length) {
-    Object.keys(expression_l_splited).map((item, id) => {
+    Object.keys(expression_l_splited).map(item => {
       if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
         result += `${(expression_l_splited[item].number - expression_r_splited[item].number >= 0) ? '+' : ' '}${expression_l_splited[item].number - expression_r_splited[item].number} * X^${item}`
       } else {
@@ -100,7 +102,7 @@ const reduceExpression = (expression, degree) => {
       }
     })
   } else {
-    Object.keys(expression_r_splited).map((item, id) => {
+    Object.keys(expression_r_splited).map(item => {
       if (Object.keys(expression_l_splited).indexOf(item) !== -1 && expression_l_splited[item].number) {
         if (+expression_l_splited[item].number > 0) {
           result += `${(expression_r_splited[item].number - expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
@@ -116,7 +118,7 @@ const reduceExpression = (expression, degree) => {
   return result;
 }
 
-const degree_0 = (expression, have_two_expr) => {
+const degree_0 = (expression) => {
   const have_pow_char = expression.includes('^');
   const a = +expression.split(`${have_pow_char ? 'X^0' : 'X0'}`)[0].split('*').join('') || 1 || 0;
   let result = {x: a};
@@ -145,7 +147,7 @@ const degree_2 = (expression) => {
     item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
     index = +(item[1].trim())
     if (item[1] && item[1].trim()) {
-      expression_splited[+index] = {number: +item[0]}
+      expression_splited[+index] = {number: (isInt(+item[0])) ? +item[0] : 0}
     }
   })
   let a = ((Object.keys(expression_splited).includes(2) || Object.keys(expression_splited).includes('2')) && Object.keys(expression_splited[2]).includes('number')) ? +expression_splited[2].number : 0;
@@ -193,13 +195,14 @@ cleanExpression = (expression, have_two_expr) => {
       item = `${number}X^1`
     }
     if (!item.includes('X')) {
-      result += `${item}*X^0`
+      result += `${sign}${item}*X^0`
     } else if (item.includes('X') && !isInt(+item.charAt(0))) {
       result += `${sign}1${item}`
     } else {
       result += `${sign}${item}`
     }
   })
+  console.log("result", result)
   if (have_two_expr) {
     result += '='
     expression_r_splited = splited_with_equals[1].split(/(?=\+)|(?=\-)/g);
@@ -247,72 +250,87 @@ getDegrees = (expression, have_two_expr) => {
 }
 
 calculate = (expression) => {
-  let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
-  expression = expression.trim();
-  expression = expression.split(' ').join('');
-  expression = expression.toUpperCase();
-  expression = cleanExpression(expression, have_two_expr);
+  // try {
 
-  const degrees = getDegrees(expression, have_two_expr)
-  let degree_number_left = degrees.left;
-  let degree_number_right = degrees.right;
-  const biggest_degree = +getMax(degree_number_left, degree_number_right)
-  let result =  { degree_number: biggest_degree, reduced: null }
+    let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
+    expression = expression.trim();
+    expression = expression.split(' ').join('');
+    expression = expression.toUpperCase();
+    expression = cleanExpression(expression, have_two_expr);
+    
+    const degrees = getDegrees(expression, have_two_expr)
+    let degree_number_left = degrees.left;
+    let degree_number_right = degrees.right;
+    const biggest_degree = +getMax(degree_number_left, degree_number_right)
 
-  if (have_two_expr) {
-    result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
-    if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof result.reduced === 'object' && Object.keys(result.reduced).includes('error'))) {
-      return result.reduced
+    let result =  { degree_number: +biggest_degree, reduced: null }
+    if (biggest_degree > 2) {
+      return { error: `Polynome de degré : ${result.degree_number}\nVeuillez entrer un polynome de rang inferieur ou egal à 2` }
     }
-    expression = result.reduced;
-    result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
-  }
-  let simplify_expr = simplifyExpression(expression, result.degree_number);
-  result.reduced = simplify_expr.expression;
-  expression = simplify_expr.expression;
-  result.degree_number = +simplify_expr.degree;
-  if (result.degree_number === 2) {
-    result.solutions = degree_2(expression);
-    result.delta = result.solutions.delta;
-    if (Object.keys(result.solutions).includes('reduced_solutions')) {
-      result.reduced_solutions = result.solutions.reduced_solutions;
-      delete result.solutions.reduced_solutions;
+    if (have_two_expr) {
+      result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
+      if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof result.reduced === 'object' && Object.keys(result.reduced).includes('error'))) {
+        return result.reduced
+      }
+      expression = result.reduced;
+      result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
     }
-    delete result.solutions.delta;
-  } else if (result.degree_number === 1) {
-    result.solutions = degree_1(expression);
-  } else if (result.degree_number === 0) {
-    result.error = "Equation impossible..."
-  } else if (result.degree_number >= 3) {
-    result = null;
-    result = {}
-    result.error = 'Veuillez entrer un polynome de rang inferieur ou egal à 2'
-  } else {
-    result = null;
-    result = {}
-    result.error = 'Veuillez rentrer une equation valide'
+    let simplify_expr = simplifyExpression(expression, result.degree_number);
+    result.reduced = simplify_expr.expression;
+    expression = simplify_expr.expression;
+    if (result.degree_number === 2) {
+      result.solutions = degree_2(expression);
+      result.delta = result.solutions.delta;
+      if (Object.keys(result.solutions).includes('reduced_solutions')) {
+        result.reduced_solutions = result.solutions.reduced_solutions;
+        delete result.solutions.reduced_solutions;
+      }
+      delete result.solutions.delta;
+    } else if (result.degree_number === 1) {
+      result.solutions = degree_1(expression);
+    } else if (result.degree_number === 0) {
+      result.error = "Equation impossible..."
+    }
+    return result;
+  // } catch (e) {
+  //   return { error: "Erreur de format" }
+  // }
   }
-  return result;
-}
-
-
-const args = process.argv.slice(2);
-if (args.length === 1) {
-  console.log(`Equation: ${args[0]}\n`)
-  const res = calculate(args[0])
-  if (Object.keys(res).includes("error")) {
-    console.error(res.error)
-  } else if (Object.keys(res).includes("message")) {
-    console.log(res.message)
-  } else {
-    console.log(`Equation de degré: ${res.degree_number}\n`)
-    console.log(`Expression simplifié: ${res.reduced} = 0\n`)
+  
+  
+  const args = process.argv.slice(2);
+  if (args.length === 1) {
+    color.colog(`\nEquation: ${args[0]}\n`, "lblue")
+    const res = calculate(args[0])
+    if (Object.keys(res).includes("error")) {
+      color.colog(res.error, "red")
+    } else if (Object.keys(res).includes("message")) {
+      color.colog(res.message, "green")
+    } else {
+      color.colog(`Polynome de degré : ${res.degree_number}\n`, "lcyan")
+    color.colog(`Expression simplifié: ${res.reduced} = 0\n`, "lcyan")
     if (Object.keys(res).includes("delta") && res.delta) {
-      console.log(`Δ : ${res.delta.value}`)
-      console.log(`Signe de delta: ${res.delta.sign}\n`)
+      color.colog(`Δ : ${res.delta.value}`, "lmagenta")
+      color.colog(`Signe de delta: ${res.delta.sign}\n`, "lmagenta")
     }
-    console.log('Solutions: \n', res.solutions)
+    color.colog("Solutions:", "green")
+    for (const [key, value] of Object.entries(res.solutions)) {
+      color.colog(`${key}: ${value}`, "lgreen")
+    }
   }
 } else {
-  console.error("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"")
+  color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"", "red")
 }
+
+
+// Degré 0:
+// 5 * X^0 = 5 * X^0 // possible
+// 4 * X^0 = 8 * X^0 // impossible
+
+// Degré 1:
+// 5 * X^0 = 4 * X^0 + 7 * X^1
+
+// Degré 2:
+// 5 * X^0 + 13 * X^1 + 3 * X^2 = 1 * X^0 + 1 * X^1 // positif
+// 6 * X^0 + 11 * X^1 + 5 * X^2 = 1 * X^0 + 1 * X^1 // null
+// 5 * X^0 + 3 * X^1 + 3 * X^2 = 1 * X^0 + 0 * X^1 // négatif
