@@ -4,7 +4,7 @@ const operator = ["+", "-"];
 
 // if is Int
 const isInt = (n) => {
-  return n % 1 === 0;
+  return !isNaN(n)
 }
 
 // get max of two numbers
@@ -126,12 +126,14 @@ const simplifyExpression = (expression) => {
   let result = ''
   expression = expression.split('=')[0].split(/(?=\+)|(?=\-)/g);
   expression.map(item => {
-    item = item.split('*').join('');
-    item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
-    if (Object.keys(expression_splited).includes(item[1])) { // if number is already exist
-      expression_splited[+item[1]].number += (isInt(+item[0])) ? +item[0] : 0
-    } else {
-      expression_splited[+item[1]] = { number: (isInt(+item[0])) ? +item[0] : 0 }
+    if (item !== ' ') {
+      item = item.split('*').join('');
+      item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
+      if (Object.keys(expression_splited).includes(item[1])) { // if number is already exist
+        expression_splited[+item[1]].number += (isInt(+item[0])) ? +item[0] : 0
+      } else {
+        expression_splited[+item[1]] = { number: (isInt(+item[0])) ? +item[0] : 0 }
+      }
     }
   })
   Object.keys(expression_splited).map((item, id) => {
@@ -151,12 +153,12 @@ const reduceExpression = (expression, degree) => {
   expression_l.map(item => {
     item = item.split('*').join('');
     item = item.split('X');
-    expression_l_splited[+item[1]] = {number: +item[0]}
+    expression_l_splited[+item[1]] = { number: +item[0] }
   })
   expression_r.map(item => {
     item = item.split('*').join('');
     item = item.split('X');
-    expression_r_splited[+item[1]] = {number: +item[0]}
+    expression_r_splited[+item[1]] = { number: +item[0] }
   })
   if (degree === 0 && Object.keys(expression_l_splited).length === 1 && Object.keys(expression_r_splited).length === 1) {
     if (expression_l_splited['0'].number !== expression_r_splited['0'].number) {
@@ -168,26 +170,46 @@ const reduceExpression = (expression, degree) => {
   if (Object.keys(expression_l_splited).length >= Object.keys(expression_r_splited).length) { // get who is the bigger left or right ?
     Object.keys(expression_l_splited).map(item => {
       if (Object.keys(expression_r_splited).indexOf(item) !== -1) {
-        result += `${(expression_l_splited[item].number - expression_r_splited[item].number >= 0) ? '+' : ' '}${expression_l_splited[item].number - expression_r_splited[item].number} * X^${item}`
+        if (expression_l_splited[item].number - expression_r_splited[item].number !== 0) {
+          result += `${(expression_l_splited[item].number - expression_r_splited[item].number > 0) ? '+' : ' '}${expression_l_splited[item].number - expression_r_splited[item].number} * X^${item}`
+        } else if (+item === +degree) {
+          degree--
+        }
       } else {
-        result += `${(expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_l_splited[item].number} * X^${item}`
+        if (expression_l_splited[item].number !== 0) {
+          result += `${(expression_l_splited[item].number > 0) ? '+' : ' '}${expression_l_splited[item].number} * X^${item}`
+        } else if (+item === +degree) {
+          degree--
+        }
       }
     })
   } else {
     Object.keys(expression_r_splited).map(item => {
       if (Object.keys(expression_l_splited).indexOf(item) !== -1 && expression_l_splited[item].number) {
         if (+expression_l_splited[item].number > 0) {
-          result += `${(expression_r_splited[item].number - expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
+          if (expression_l_splited[item].number - expression_r_splited[item].number !== 0) {
+            result += `${(expression_r_splited[item].number - expression_l_splited[item].number > 0) ? '+' : ' '}${expression_r_splited[item].number - expression_l_splited[item].number} * X^${item}`
+          } else if (+item === +degree) {
+            degree--
+          }
         } else {
-          result += `${(expression_r_splited[item].number + expression_l_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number + expression_l_splited[item].number} * X^${item}`
+          if (expression_l_splited[item].number + expression_r_splited[item].number !== 0) {
+            result += `${(expression_r_splited[item].number + expression_l_splited[item].number > 0) ? '+' : ' '}${expression_r_splited[item].number + expression_l_splited[item].number} * X^${item}`
+          } else if (+item === +degree) {
+            degree--
+          }
         }
       } else {
-        result += `${(expression_r_splited[item].number >= 0) ? '+' : ' '}${expression_r_splited[item].number} * X^${item}`
+        if (expression_r_splited[item].number !== 0) {
+          result += `${(expression_r_splited[item].number > 0) ? '+' : ' '}${expression_r_splited[item].number} * X^${item}`
+        } else if (+item === +degree) {
+          degree--
+        }
       }
     })
   }
   result += " = 0"
-  return result;
+  return { result, degree };
 }
 
 // Function to clean expression, that allows to work on a good basis of expression
@@ -216,12 +238,13 @@ const cleanExpression = (expression, have_two_expr) => {
     expression_r_splited.map(item => {
       const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+'
       item = item.replace(/(\+)|(\-)/g, '')
-      if (item === 'X') {
-        item = '1X1'
+      if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
+        number = item.split('X')[0]
+        item = `${number}X1`
       }
-      if (!item.includes('X')) {
-        result += `${item}*X0`
-      } else if (item.includes('X') && !isInt(+item.charAt(0))) {
+      if (!item.includes('X')) { // if we don't have X
+        result += `${sign}${item}*X0`
+      } else if (item.includes('X') && !isInt(+item.charAt(0))) { // if we don't have coefficient
         result += `${sign}1${item}`
       } else {
         result += `${sign}${item}`
@@ -239,7 +262,8 @@ const getDegrees = (expression, have_two_expr) => {
   let cpt_l = 0
   expression_l_splited.map(item => {
     item = item.replace(/(\+)|(\-)/g, '')
-    const current_degree = item.charAt(item.length - 1)
+    item = item.split('X')
+    const current_degree = item[1]
     if (+current_degree > cpt_l) {
       cpt_l = +current_degree
     }
@@ -248,7 +272,8 @@ const getDegrees = (expression, have_two_expr) => {
     expression_r_splited = splited_with_equals[1].split(/(?=\+)|(?=\-)/g);
     expression_r_splited.map(item => {
       item = item.replace(/(\+)|(\-)/g, '')
-      const current_degree = item.charAt(item.length - 1)
+      item = item.split('X')
+      const current_degree = item[1]
       if (+current_degree > cpt_r) {
         cpt_r = +current_degree
       }
@@ -257,16 +282,25 @@ const getDegrees = (expression, have_two_expr) => {
   return { left: +cpt_l, right: +cpt_r }
 }
 
+const format_expression = (expression) => {
+  let result = expression
+
+  result = result.trim();
+  result = result.replace(/\s+/g, '');
+  result = result.replace(/\n/g,'');
+  result = result.split('\\').join('');
+  result = result.split('^').join('');
+  result = result.toUpperCase();
+  
+  return result
+}
+
 // Calculate an expression
 const calculate = (expression) => {
   try {
-      let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
-      expression = expression.trim();
-      expression = expression.split(' ').join('');
-      expression = expression.split('^').join('');
-      expression = expression.toUpperCase();
-      expression = cleanExpression(expression, have_two_expr);
-      
+    let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
+    expression = format_expression(expression)
+    expression = cleanExpression(expression, have_two_expr);
       const degrees = getDegrees(expression, have_two_expr)
       let degree_number_left = degrees.left;
       let degree_number_right = degrees.right;
@@ -277,12 +311,13 @@ const calculate = (expression) => {
         return { error: `Polynome de degré : ${result.degree_number}\nVeuillez entrer un polynome de rang inferieur ou egal à 2` }
       }
       if (have_two_expr) {
-        result.reduced = reduceExpression(expression, result.degree_number, degree_number_right);
-        if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof result.reduced === 'object' && Object.keys(result.reduced).includes('error'))) {
-          return result.reduced
+        const reduced_expression = reduceExpression(expression, biggest_degree);
+        result.reduced = reduced_expression.result.trim()
+        if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof reduced_expression === 'object' && Object.keys(reduced_expression).includes('error'))) {
+          return reduced_expression
         }
-        expression = result.reduced;
-        result.degree_number = (degree_number_right > degree_number_left) ? degree_number_right : degree_number_left;
+        expression = result.reduced.trim();
+        result.degree_number = reduced_expression.degree
       }
       expression = simplifyExpression(expression);
       result.reduced = expression;
@@ -307,24 +342,30 @@ const calculate = (expression) => {
   
   
 const args = process.argv.slice(2);
-  if (args.length === 1) {
+if (args.length === 1) {
+  try {    
     color.colog(`\nEquation: ${args[0]}\n`, "lblue")
     const res = calculate(args[0])
     if (Object.keys(res).includes("error")) {
       color.colog(res.error, "red")
     } else if (Object.keys(res).includes("message")) {
       color.colog(res.message, "green")
-    } else {
+    } else if (typeof res === 'object' && Object.keys(res).includes('degree_number') && Object.keys(res).includes('reduced') && Object.keys(res).includes('solutions')) {
       color.colog(`Polynome de degré : ${res.degree_number}\n`, "lcyan")
-    color.colog(`Expression simplifié: ${res.reduced} = 0\n`, "lcyan")
-    if (Object.keys(res).includes("delta") && res.delta) {
-      color.colog(`Δ : ${res.delta.value}`, "lmagenta")
-      color.colog(`Signe de delta: ${res.delta.sign}\n`, "lmagenta")
+      color.colog(`Expression simplifié: ${res.reduced} = 0\n`, "lcyan")
+      if (Object.keys(res).includes("delta") && res.delta) {
+        color.colog(`Δ : ${res.delta.value}`, "lmagenta")
+        color.colog(`Signe de delta: ${res.delta.sign}\n`, "lmagenta")
+      }
+      color.colog("Solutions:", "green")
+      for (const [key, value] of Object.entries(res.solutions)) {
+        color.colog(`${key}: ${value}`, "lgreen")
+      }
+    } else {
+      color.colog("Veuillez entrer une equation bien formaté contenant que des nombres.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js \"<Equation>\"", "red")
     }
-    color.colog("Solutions:", "green")
-    for (const [key, value] of Object.entries(res.solutions)) {
-      color.colog(`${key}: ${value}`, "lgreen")
-    }
+  } catch (error) {
+    color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js \"<Equation>\"", "red")
   }
 } else {
   color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js \"<Equation>\"", "red")
