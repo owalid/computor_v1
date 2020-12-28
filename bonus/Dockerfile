@@ -6,7 +6,6 @@ WORKDIR /usr/src/app
 
 # update and install dependency
 RUN apk update && apk upgrade
-RUN apk add git
 
 # copy the app, note .dockerignore
 COPY . /usr/src/app/

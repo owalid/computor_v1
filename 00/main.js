@@ -18,8 +18,8 @@ const sqrt = (number) => {
   let x1 = number / 2;
       
   while (result !== x1) {
-      result = x1;
-      x1 = (result + (number / result)) / 2;
+    result = x1;
+    x1 = (result + (number / result)) / 2;
   }
   return result;
 }
