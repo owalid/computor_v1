@@ -1,5 +1,4 @@
 const color = require('./color')
-
 const operator = ["+", "-"];
 
 const isNotFloat = (n) => {
@@ -62,7 +61,7 @@ const degree_1 = (expression) => {
     item = item.replace(' ', '');
     item = item.split('*').join('');
     item = item.split('X^');
-    index = +(item[1].trim())
+    let index = +(item[1].trim())
     if (item[1] && item[1].trim()) {
       expression_splited[+index] = { number: (isInt(+item[0])) ? +item[0] : 0 }
     }
@@ -84,7 +83,7 @@ const degree_2 = (expression) => {
     item = item.replace(' ', '');
     item = item.split('*').join('');
     item = item.split('X^');
-    index = +(item[1].trim())
+    let index = +(item[1].trim())
     if (item[1] && item[1].trim()) {
       expression_splited[+index] = { number: (isInt(+item[0])) ? +item[0] : 0 }
     }
@@ -217,8 +216,8 @@ const reduceExpression = (expression, degree) => {
 
 // Function to clean expression, that allows to work on a good basis of expression
 const cleanExpression = (expression, have_two_expr) => {
-  splited_with_equals = expression.split('=')
-  expression_l_splited = splited_with_equals[0].split(/(?=\+)|(?=\-)/g); // get expression right
+  let splited_with_equals = expression.split('=')
+  let expression_l_splited = splited_with_equals[0].split(/(?=\+)|(?=\-)/g); // get expression right
   let result = ""
   expression_l_splited.map((item, index_expr) => {
     const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+' // get sign in memory
@@ -247,7 +246,7 @@ const cleanExpression = (expression, have_two_expr) => {
   })
   if (have_two_expr) {
     result += '='
-    expression_r_splited = splited_with_equals[1].split(/(?=[\+-])/g);
+    let expression_r_splited = splited_with_equals[1].split(/(?=[\+-])/g);
     expression_r_splited.map((item, index_expr) => {
       const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+'
       item = item.replace(/(\+)|(\-)/g, '')
@@ -279,8 +278,8 @@ const cleanExpression = (expression, have_two_expr) => {
 
 // Get degree of expression
 const getDegrees = (expression, have_two_expr) => {
-  splited_with_equals = expression.split('=')
-  expression_l_splited = splited_with_equals[0].split(/(?=\+)|(?=\-)/g);
+  let splited_with_equals = expression.split('=')
+  let expression_l_splited = splited_with_equals[0].split(/(?=\+)|(?=\-)/g);
   let cpt_r = 0
   let cpt_l = 0
   expression_l_splited.map(item => {
@@ -299,7 +298,7 @@ const getDegrees = (expression, have_two_expr) => {
     }
   })
   if (have_two_expr) {
-    expression_r_splited = splited_with_equals[1].split(/(?=\+)|(?=\-)/g);
+    let expression_r_splited = splited_with_equals[1].split(/(?=\+)|(?=\-)/g);
     expression_r_splited.map(item => {
       if (isInt(item) && item < 0) {
         cpt_r = +item
