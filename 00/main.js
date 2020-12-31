@@ -249,29 +249,29 @@ const cleanExpression = (expression, have_two_expr) => {
     result += '='
     expression_r_splited = splited_with_equals[1].split(/(?=[\+-])/g);
     expression_r_splited.map((item, index_expr) => {
-        const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+'
-        item = item.replace(/(\+)|(\-)/g, '')
-        if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
-          number = item.split('X')[0]
-          if (index_expr === expression_r_splited.length - 1 || (!isInt(+expression_r_splited[index_expr + 1]) && isNotFloat(expression_r_splited[index_expr + 1]))) {
-            item = `${number}X1`
-          } else {
-            let degree = expression_r_splited[index_expr + 1];
-            if (!isNotFloat(degree)) {
-              degree = degree.replace(',', '.')
-              degree = parseFloat(degree)
-            }
-            item = `${number}X${degree}`
-            delete expression_r_splited[index_expr + 1]
-          }
-        }
-        if (!item.includes('X')) { // if we don't have X
-          result += `${sign}${item}*X0`
-        } else if (item.includes('X') && !isInt(+item.charAt(0))) { // if we don't have coefficient
-          result += `${sign}1${item}`
+      const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+'
+      item = item.replace(/(\+)|(\-)/g, '')
+      if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
+        number = item.split('X')[0]
+        if (index_expr === expression_r_splited.length - 1 || (!isInt(+expression_r_splited[index_expr + 1]) && isNotFloat(expression_r_splited[index_expr + 1]))) {
+          item = `${number}X1`
         } else {
-          result += `${sign}${item}`
+          let degree = expression_r_splited[index_expr + 1];
+          if (!isNotFloat(degree)) {
+            degree = degree.replace(',', '.')
+            degree = parseFloat(degree)
+          }
+          item = `${number}X${degree}`
+          delete expression_r_splited[index_expr + 1]
         }
+      }
+      if (!item.includes('X')) { // if we don't have X
+        result += `${sign}${item}*X0`
+      } else if (item.includes('X') && !isInt(+item.charAt(0))) { // if we don't have coefficient
+        result += `${sign}1${item}`
+      } else {
+        result += `${sign}${item}`
+      }
     })
   }
   return result
@@ -333,7 +333,7 @@ const getErrorDegree = (degree_number_left, degree_number_right) => {
 }
 const format_expression = (expression) => {
   let result = expression
-
+  
   result = result.trim();
   result = result.replace(/\s+/g, '');
   result = result.replace(/\n/g,'');
@@ -366,11 +366,11 @@ const calculate = (expression) => {
       }
       if (have_two_expr) {
         const reduced_expression = reduceExpression(expression, biggest_degree);
-        result.reduced = reduced_expression.result.trim()
         if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof reduced_expression === 'object' && Object.keys(reduced_expression).includes('error'))) {
           return reduced_expression
         }
-        expression = result.reduced.trim();
+        result.reduced = reduced_expression.result.trim()
+        expression = result.reduced;
         result.degree_number = reduced_expression.degree
       }
       expression = simplifyExpression(expression);
