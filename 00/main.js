@@ -217,7 +217,6 @@ const reduceExpression = (expression, degree) => {
 
 // Function to clean expression, that allows to work on a good basis of expression
 const cleanExpression = (expression, have_two_expr) => {
-  // console.log("result", expression)
   splited_with_equals = expression.split('=')
   expression_l_splited = splited_with_equals[0].split(/(?=\+)|(?=\-)/g); // get expression right
   let result = ""
@@ -226,10 +225,15 @@ const cleanExpression = (expression, have_two_expr) => {
     item = item.replace(/(\+)|(\-)/g, '')
     if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
       number = item.split('X')[0]
-      if (index_expr === expression_l_splited.length - 1 || !isInt(+expression_l_splited[index_expr + 1])) {
+      if (index_expr === expression_l_splited.length - 1 || (!isInt(+expression_l_splited[index_expr + 1]) && isNotFloat(expression_l_splited[index_expr + 1]))) {
         item = `${number}X1`
       } else {
-        item = `${number}X${+expression_l_splited[index_expr + 1]}`
+        let degree = expression_l_splited[index_expr + 1];
+        if (!isNotFloat(degree)) {
+          degree = degree.replace(',', '.')
+          degree = parseFloat(degree)
+        }
+        item = `${number}X${degree}`
         delete expression_l_splited[index_expr + 1]
       }
     }
@@ -249,10 +253,15 @@ const cleanExpression = (expression, have_two_expr) => {
         item = item.replace(/(\+)|(\-)/g, '')
         if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
           number = item.split('X')[0]
-          if (index_expr === expression_r_splited.length - 1 || !isInt(+expression_r_splited[index_expr + 1])) {
+          if (index_expr === expression_r_splited.length - 1 || (!isInt(+expression_r_splited[index_expr + 1]) && isNotFloat(expression_r_splited[index_expr + 1]))) {
             item = `${number}X1`
           } else {
-            item = `${number}X${+expression_r_splited[index_expr + 1]}`
+            let degree = expression_r_splited[index_expr + 1];
+            if (!isNotFloat(degree)) {
+              degree = degree.replace(',', '.')
+              degree = parseFloat(degree)
+            }
+            item = `${number}X${degree}`
             delete expression_r_splited[index_expr + 1]
           }
         }
