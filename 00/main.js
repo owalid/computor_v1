@@ -1,7 +1,7 @@
 const color = require('./color')
 const operator = ["+", "-"];
 
-const isNotFloat = (n) => {
+const isFloat = (n) => {
   return n % 1 === 0;
 }
 // if is Int
@@ -223,12 +223,12 @@ const cleanExpression = (expression, have_two_expr) => {
     const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+' // get sign in memory
     item = item.replace(/(\+)|(\-)/g, '')
     if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
-      number = item.split('X')[0]
-      if (index_expr === expression_l_splited.length - 1 || (!isInt(+expression_l_splited[index_expr + 1]) && isNotFloat(expression_l_splited[index_expr + 1]))) {
+    number = item.split('X')[0]
+      if (index_expr === expression_l_splited.length - 1 || (!isInt(+expression_l_splited[index_expr + 1]) && !isFloat(expression_l_splited[index_expr + 1]))) {
         item = `${number}X1`
       } else {
         let degree = expression_l_splited[index_expr + 1];
-        if (!isNotFloat(degree)) {
+        if (isFloat(degree)) {
           degree = degree.replace(',', '.')
           degree = parseFloat(degree)
         }
@@ -252,11 +252,11 @@ const cleanExpression = (expression, have_two_expr) => {
       item = item.replace(/(\+)|(\-)/g, '')
       if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
         number = item.split('X')[0]
-        if (index_expr === expression_r_splited.length - 1 || (!isInt(+expression_r_splited[index_expr + 1]) && isNotFloat(expression_r_splited[index_expr + 1]))) {
+        if (index_expr === expression_r_splited.length - 1 || (!isInt(+expression_r_splited[index_expr + 1]) && !isFloat(expression_r_splited[index_expr + 1]))) {
           item = `${number}X1`
         } else {
           let degree = expression_r_splited[index_expr + 1];
-          if (!isNotFloat(degree)) {
+          if (isFloat(degree)) {
             degree = degree.replace(',', '.')
             degree = parseFloat(degree)
           }
@@ -289,10 +289,10 @@ const getDegrees = (expression, have_two_expr) => {
       item = item.replace(/(\+)|(\-)/g, '')
       item = item.split('X')
       let current_degree = item[1]
-      if (!isNotFloat(current_degree)) {
+      if (!isFloat(current_degree)) {
         current_degree = current_degree.replace(',', '.')
         cpt_l = parseFloat(current_degree)
-      } else if (isNotFloat(cpt_l) && +current_degree > cpt_l && cpt_l >= 0) {
+      } else if (isFloat(cpt_l) && +current_degree > cpt_l && cpt_l >= 0) {
         cpt_l = +current_degree
       }
     }
@@ -306,10 +306,10 @@ const getDegrees = (expression, have_two_expr) => {
         item = item.replace(/(\+)|(\-)/g, '')
         item = item.split('X')
         let current_degree = item[1]
-        if (!isNotFloat(current_degree)) {
+        if (!isFloat(current_degree)) {
           current_degree = current_degree.replace(',', '.')
           cpt_r = parseFloat(current_degree)
-        } else if (isNotFloat(cpt_r) && +current_degree > cpt_r && cpt_r >= 0) {
+        } else if (isFloat(cpt_r) && +current_degree > cpt_r && cpt_r >= 0) {
           cpt_r = +current_degree
         }
       }
@@ -319,9 +319,9 @@ const getDegrees = (expression, have_two_expr) => {
 }
 const getErrorDegree = (degree_number_left, degree_number_right) => {
   let error = null
-  if (!isNotFloat(degree_number_left)) {
+  if (!isFloat(degree_number_left)) {
      error = `Polynome non entier: ${degree_number_left}\nVeuillez entrer un polynome entier de rang inferieur ou egal a 2 et supérieur à 0`
-  } else if (!isNotFloat(degree_number_right)) {
+  } else if (!isFloat(degree_number_right)) {
      error = `Polynome non entier: ${degree_number_right}\nVeuillez entrer un polynome entier de rang inferieur ou egal a 2 et supérieur à 0`
   } else if (degree_number_left < 0) {
      error = `Polynome negatif: ${degree_number_left}\nVeuillez entrer un polynome de rang inferieur ou egal a 2 et supérieur à 0`
@@ -336,6 +336,7 @@ const format_expression = (expression) => {
   result = result.trim();
   result = result.replace(/\s+/g, '');
   result = result.replace(/\n/g,'');
+  result = result.replace(',','.');
   result = result.split('\\').join('');
   result = result.split('^').join('');
   result = result.toUpperCase();
@@ -356,7 +357,6 @@ const calculate = (expression) => {
       if (errorDegree !== null) {
         return { error: errorDegree }
       }
-     
       const biggest_degree = +getMax(degree_number_left, degree_number_right)
 
       let result =  { degree_number: +biggest_degree, reduced: null }
@@ -388,8 +388,7 @@ const calculate = (expression) => {
         result.error = "Equation impossible..."
       }
       return result;
-    } catch (e) {
-      console.log(e)
+    } catch (error) {
       return { error: "Erreur de format" }
     }
   }
@@ -417,12 +416,11 @@ if (args.length === 1) {
       }
     } else {
       console.log(res)
-      color.colog("Veuillez entrer une equation bien formaté contenant que des nombres.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js", "red")
+      color.colog("Veuillez entrer une equation bien formaté contenant que des nombres.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js <Expression>", "red")
     }
   } catch (error) {
-    console.log(error)
-    color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js", "red")
+    color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js <Expression>", "red")
   }
 } else {
-  color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js", "red")
+  color.colog("Veuillez entrer une equation bien formaté.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js <Expression>", "red")
 }
