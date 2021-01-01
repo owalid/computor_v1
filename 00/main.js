@@ -427,7 +427,6 @@ if (args.length === 1) {
         color.colog(`${key}: ${value}`, "lgreen")
       }
     } else {
-      console.log(res)
       color.colog("Veuillez entrer une equation bien formaté contenant que des nombres.\nExemple: \"5X^2 - X + 3 * X^1 - 1 X^2 = 0\"\nUsage: node main.js <Expression>", "red")
     }
   } catch (error) {

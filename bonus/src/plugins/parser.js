@@ -121,9 +121,10 @@ const degree_2 = (expression) => {
 }
 
 // which allows to simplify the expression to have only one coefficient per degree.
-const simplifyExpression = (expression) => {
+const simplifyExpression = (expression, degree) => {
   const have_pow_char = expression.includes('^');
   let expression_splited = {};
+  let degree_result = degree
   let result = ''
   expression = expression.split('=')[0].split(/(?=\+)|(?=\-)/g);
   expression.map(item => {
@@ -131,9 +132,18 @@ const simplifyExpression = (expression) => {
       item = item.split('*').join('');
       item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
       if (Object.keys(expression_splited).includes(item[1])) { // if number is already exist
-        expression_splited[+item[1]].number += (isInt(+item[0])) ? +item[0] : 0
+        if (expression_splited[+item[1]].number + +item[0] === 0 && +item[1] === degree) {
+          degree_result--
+          delete expression_splited[+item[1]]
+        } else { 
+          expression_splited[+item[1]].number += (isInt(+item[0])) ? +item[0] : 0
+        }
       } else {
-        expression_splited[+item[1]] = { number: (isInt(+item[0])) ? +item[0] : 0 }
+        if (+item[0] === 0 && +item[1] === degree) {
+          degree_result--
+        } else {
+          expression_splited[+item[1]] = { number: (isInt(+item[0])) ? +item[0] : 0 }
+        }
       }
     }
   })
@@ -141,7 +151,7 @@ const simplifyExpression = (expression) => {
     result += `${(expression_splited[item].number >= 0 && id > 0) ? ' + ' : ' '}${expression_splited[item].number} * X^${item}`
   })
   result = result.trim();
-  return result;
+  return { result, degree_result }
 }
 
 // which allows to reduce the expression when it is not equal to zero
@@ -345,11 +355,11 @@ const format_expression = (expression) => {
 
 export default {
   install(Vue, options) {
-  Vue.prototype.$calculate = (expression) => {
-    try {
-      let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
-      expression = format_expression(expression)
-      expression = cleanExpression(expression, have_two_expr);
+    Vue.prototype.$calculate = (expression) => {
+      try {
+        let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
+        expression = format_expression(expression)
+        expression = cleanExpression(expression, have_two_expr)
         const degrees = getDegrees(expression, have_two_expr)
         let degree_number_left = degrees.left;
         let degree_number_right = degrees.right;
@@ -358,7 +368,7 @@ export default {
           return { error: errorDegree }
         }
         const biggest_degree = +getMax(degree_number_left, degree_number_right)
-  
+    
         let result =  { degree_number: +biggest_degree, reduced: null }
         if (biggest_degree > 2) {
           return { error: `Polynome de degré : ${result.degree_number}\nVeuillez entrer un polynome de rang inferieur ou egal à 2` }
@@ -372,7 +382,9 @@ export default {
           expression = result.reduced;
           result.degree_number = reduced_expression.degree
         }
-        expression = simplifyExpression(expression);
+        const simplified_expression = simplifyExpression(expression, result.degree_number);
+        expression = simplified_expression.result
+        result.degree_number = simplified_expression.degree_result;
         result.reduced = expression;
         if (result.degree_number === 2) {
           result.solutions = degree_2(expression);
@@ -388,8 +400,7 @@ export default {
           result.error = "Equation impossible..."
         }
         return result;
-      } catch (e) {
-        console.log(e)
+      } catch (error) {
         return { error: "Erreur de format" }
       }
     }
