@@ -122,9 +122,10 @@ const degree_2 = (expression) => {
 }
 
 // which allows to simplify the expression to have only one coefficient per degree.
-const simplifyExpression = (expression) => {
+const simplifyExpression = (expression, degree) => {
   const have_pow_char = expression.includes('^');
   let expression_splited = {};
+  let degree_result = degree
   let result = ''
   expression = expression.split('=')[0].split(/(?=\+)|(?=\-)/g);
   expression.map(item => {
@@ -132,9 +133,18 @@ const simplifyExpression = (expression) => {
       item = item.split('*').join('');
       item = item.split(`${have_pow_char ? 'X^' : 'X'}`);
       if (Object.keys(expression_splited).includes(item[1])) { // if number is already exist
-        expression_splited[+item[1]].number += (isInt(+item[0])) ? +item[0] : 0
+        if (expression_splited[+item[1]].number + +item[0] === 0 && +item[1] === degree) {
+          degree_result--
+          delete expression_splited[+item[1]]
+        } else { 
+          expression_splited[+item[1]].number += (isInt(+item[0])) ? +item[0] : 0
+        }
       } else {
-        expression_splited[+item[1]] = { number: (isInt(+item[0])) ? +item[0] : 0 }
+        if (+item[0] === 0 && +item[1] === degree) {
+          degree_result--
+        } else {
+          expression_splited[+item[1]] = { number: (isInt(+item[0])) ? +item[0] : 0 }
+        }
       }
     }
   })
@@ -142,7 +152,7 @@ const simplifyExpression = (expression) => {
     result += `${(expression_splited[item].number >= 0 && id > 0) ? ' + ' : ' '}${expression_splited[item].number} * X^${item}`
   })
   result = result.trim();
-  return result;
+  return { result, degree_result }
 }
 
 // which allows to reduce the expression when it is not equal to zero
@@ -349,49 +359,51 @@ const calculate = (expression) => {
   try {
     let have_two_expr = (expression.includes('=') && +expression.split('=')[1] !== 0)
     expression = format_expression(expression)
-    expression = cleanExpression(expression, have_two_expr);
-      const degrees = getDegrees(expression, have_two_expr)
-      let degree_number_left = degrees.left;
-      let degree_number_right = degrees.right;
-      const errorDegree = getErrorDegree(degree_number_left, degree_number_right)
-      if (errorDegree !== null) {
-        return { error: errorDegree }
-      }
-      const biggest_degree = +getMax(degree_number_left, degree_number_right)
-
-      let result =  { degree_number: +biggest_degree, reduced: null }
-      if (biggest_degree > 2) {
-        return { error: `Polynome de degré : ${result.degree_number}\nVeuillez entrer un polynome de rang inferieur ou egal à 2` }
-      }
-      if (have_two_expr) {
-        const reduced_expression = reduceExpression(expression, biggest_degree);
-        if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof reduced_expression === 'object' && Object.keys(reduced_expression).includes('error'))) {
-          return reduced_expression
-        }
-        result.reduced = reduced_expression.result.trim()
-        expression = result.reduced;
-        result.degree_number = reduced_expression.degree
-      }
-      expression = simplifyExpression(expression);
-      result.reduced = expression;
-      if (result.degree_number === 2) {
-        result.solutions = degree_2(expression);
-        result.delta = result.solutions.delta;
-        if (Object.keys(result.solutions).includes('reduced_solutions')) {
-          result.reduced_solutions = result.solutions.reduced_solutions;
-          delete result.solutions.reduced_solutions;
-        }
-        delete result.solutions.delta;
-      } else if (result.degree_number === 1) {
-        result.solutions = degree_1(expression);
-      } else if (result.degree_number === 0) {
-        result.error = "Equation impossible..."
-      }
-      return result;
-    } catch (error) {
-      return { error: "Erreur de format" }
+    expression = cleanExpression(expression, have_two_expr)
+    const degrees = getDegrees(expression, have_two_expr)
+    let degree_number_left = degrees.left;
+    let degree_number_right = degrees.right;
+    const errorDegree = getErrorDegree(degree_number_left, degree_number_right)
+    if (errorDegree !== null) {
+      return { error: errorDegree }
     }
+    const biggest_degree = +getMax(degree_number_left, degree_number_right)
+
+    let result =  { degree_number: +biggest_degree, reduced: null }
+    if (biggest_degree > 2) {
+      return { error: `Polynome de degré : ${result.degree_number}\nVeuillez entrer un polynome de rang inferieur ou egal à 2` }
+    }
+    if (have_two_expr) {
+      const reduced_expression = reduceExpression(expression, biggest_degree);
+      if ((+degree_number_left === 0 && +degree_number_right === 0) || (typeof reduced_expression === 'object' && Object.keys(reduced_expression).includes('error'))) {
+        return reduced_expression
+      }
+      result.reduced = reduced_expression.result.trim()
+      expression = result.reduced;
+      result.degree_number = reduced_expression.degree
+    }
+    const simplified_expression = simplifyExpression(expression, result.degree_number);
+    expression = simplified_expression.result
+    result.degree_number = simplified_expression.degree_result;
+    result.reduced = expression;
+    if (result.degree_number === 2) {
+      result.solutions = degree_2(expression);
+      result.delta = result.solutions.delta;
+      if (Object.keys(result.solutions).includes('reduced_solutions')) {
+        result.reduced_solutions = result.solutions.reduced_solutions;
+        delete result.solutions.reduced_solutions;
+      }
+      delete result.solutions.delta;
+    } else if (result.degree_number === 1) {
+      result.solutions = degree_1(expression);
+    } else if (result.degree_number === 0) {
+      result.error = "Equation impossible..."
+    }
+    return result;
+  } catch (error) {
+    return { error: "Erreur de format" }
   }
+}
   
   
 const args = process.argv.slice(2);
