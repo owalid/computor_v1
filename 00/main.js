@@ -234,9 +234,9 @@ const cleanExpression = (expression, have_two_expr) => {
     item = item.replace(/(\+)|(\-)/g, '')
     if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
     number = item.split('X')[0]
-      if (index_expr === expression_l_splited.length - 1 || (!isInt(+expression_l_splited[index_expr + 1]) && !isFloat(expression_l_splited[index_expr + 1]))) {
-        item = `${number}X1`
-      } else {
+    if (index_expr === expression_l_splited.length - 1 || (!isInt(+expression_l_splited[index_expr + 1]) && !isFloat(expression_l_splited[index_expr + 1]))) {
+      item = `${number}X1`
+    } else {
         let degree = expression_l_splited[index_expr + 1];
         if (isFloat(degree)) {
           degree = degree.replace(',', '.')

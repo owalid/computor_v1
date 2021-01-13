@@ -232,7 +232,7 @@ const cleanExpression = (expression, have_two_expr) => {
     const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+' // get sign in memory
     item = item.replace(/(\+)|(\-)/g, '')
     if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
-    number = item.split('X')[0]
+    let number = item.split('X')[0]
       if (index_expr === expression_l_splited.length - 1 || (!isInt(+expression_l_splited[index_expr + 1]) && !isFloat(expression_l_splited[index_expr + 1]))) {
         item = `${number}X1`
       } else {
@@ -260,7 +260,7 @@ const cleanExpression = (expression, have_two_expr) => {
       const sign = (operator.includes(item.charAt(0))) ? item.charAt(0) : '+'
       item = item.replace(/(\+)|(\-)/g, '')
       if (item.includes('X') && item.indexOf('X') === item.length - 1) { // if we don't have degree
-        number = item.split('X')[0]
+        let number = item.split('X')[0]
         if (index_expr === expression_r_splited.length - 1 || (!isInt(+expression_r_splited[index_expr + 1]) && !isFloat(expression_r_splited[index_expr + 1]))) {
           item = `${number}X1`
         } else {
@@ -401,6 +401,7 @@ export default {
         }
         return result;
       } catch (error) {
+        console.error(error)
         return { error: "Erreur de format" }
       }
     }
